@@ -24,13 +24,13 @@ def classify(seq, k, lrTab,alphabet):
             bits += lrTab[i, j]
     return bits
 
-def markov_chain(kmers,k,bases):
+def markov_chain(kmers,k,alphabet):
 
     conds = np.zeros((4**(int(k)-1), 4), dtype=np.float64)
 
     margs = np.zeros(4, dtype=np.float64)
 
-    for i, ci in enumerate([''.join(p) for p in itertools.product(bases,repeat=k-1)]):
+    for i, ci in enumerate([''.join(p) for p in itertools.product(alphabet,repeat=k-1)]):
 
         tot = 0
 
@@ -49,11 +49,11 @@ def markov_chain(kmers,k,bases):
 
 
 def trainModel(fasta,k,kmers,alphabet):
-    q = BasicCounter(k=k,mean=False,std=False,log2=False,alphabet=alphabet)
+    q = BasicCounter(fasta,k=k,mean=False,std=False,log2=False,alphabet=alphabet)
     q.get_counts()
     #Reverse length normalization of seekr
     qUnNormCounts = q.counts.T*[len(s) for s in q.seqs]/1000
-    qCounts = np.rint(unNorm.T)
+    qCounts = np.rint(qUnNormCounts.T)
     qCounts = np.mean(qCounts,axis=0)
     currKmers = dict(zip(kmers,qCounts))
     qTransMat = markov_chain(currKmers,k,alphabet)
