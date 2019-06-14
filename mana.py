@@ -3,11 +3,13 @@ import manaStats
 import argparse
 import itertools
 import numpy as np
+from seekr.fasta_reader import Reader
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--query",type=str,help='Target sequences')
 parser.add_argument('--null', type=str,help='Sequences that compose null model')
 parser.add_argument('--db',type=str,help='Fasta file with sequences to calculate similarity score')
-parser.add_argument('-p', type=int,help='p-val threshold to consider score "S" significant. Note: If p(S>0) < p, threshold will be set to a score of 0',default=.01)
+parser.add_argument('-p', type=int,help='Solve KDE for score S that integrates to this p-val. If S (S is more rare than anticipated) < 0, set S = 0',default=.01)
 parser.add_argument('-o',type=int,help='Order of markov model',default=3)
 parser.add_argument('-w', type=int, help='Window for tile size', default=200)
 parser.add_argument('-s', type=int, help='How many bp to slide tiles', default=20)
@@ -35,3 +37,13 @@ kde = manaStats.KDE(randSeqsScore.reshape(-1,1))
 S = manaStats.kdeCDF(kde.best_estimator_,1000,-100,100,args.p)
 if S < 0:
     S = 0
+
+target = Reader(args.db)
+targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
+
+targetMap = {}
+for tHead,tSeq in zip(targetheaders,targetSeqs):
+    tileScores = [classify(tSeq[i:i+w,args.o,lgTbl,alphabet]) for i in range(0,len(tSeq),args.s)]
+    targetMap[tHead] = [tileScores,manaStats.tileE(tileScores)
+
+print(targetMap)
