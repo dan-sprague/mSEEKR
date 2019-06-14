@@ -42,8 +42,9 @@ target = Reader(args.db)
 targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
 
 targetMap = {}
-for tHead,tSeq in zip(targetheaders,targetSeqs):
+for tHead,tSeq in zip(targetHeaders,targetSeqs):
+    print(tHead)
     tileScores = [classify(tSeq[i:i+w,args.o,lgTbl,alphabet]) for i in range(0,len(tSeq),args.s)]
-    targetMap[tHead] = [tileScores,manaStats.tileE(tileScores)
+    targetMap[tHead] = [tileScores,manaStats.tileE(tileScores)]
 
 print(targetMap)
