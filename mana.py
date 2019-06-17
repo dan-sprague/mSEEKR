@@ -6,6 +6,7 @@ import numpy as np
 from seekr.fasta_reader import Reader
 from scipy.stats import norm
 from collections import defaultdict
+from tqdm import tqdm
 parser = argparse.ArgumentParser()
 parser.add_argument("--query",type=str,help='Target sequences')
 parser.add_argument('--null', type=str,help='Sequences that compose null model')
@@ -54,7 +55,7 @@ for tHead,tSeq in zip(targetHeaders,targetSeqs):
 
     targetMap[tHead].append([np.sum(tileScores[tileScores>0]),P,np.sum(tileScores>0),manaStats.tileE(tileScores,args.p,np.sum(tileScores>0))])
 
-    for i,tileScore in enumerate(tileScores):
+    for i,tileScore in tqdm(enumerate(tileScores)):
         if tileScore > S:
             targetMap[tHead].append(f'{i}\t{i*args.s}:{(i*args.s)+args.w}\t{tSeq[i*args.s:(i*args.s)+args.w]}\t{tileScore}\t{manaStats.integrate(kde.best_estimator_,1000,-100,tileScore)[0]}\n')
 
