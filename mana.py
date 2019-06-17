@@ -4,12 +4,13 @@ import argparse
 import itertools
 import numpy as np
 from seekr.fasta_reader import Reader
-
+from scipy.stats import norm
+from collections import defaultdict
 parser = argparse.ArgumentParser()
 parser.add_argument("--query",type=str,help='Target sequences')
 parser.add_argument('--null', type=str,help='Sequences that compose null model')
 parser.add_argument('--db',type=str,help='Fasta file with sequences to calculate similarity score')
-parser.add_argument('-p', type=int,help='Solve KDE for score S that integrates to this p-val. If S (S is more rare than anticipated) < 0, set S = 0',default=.01)
+parser.add_argument('-p', type=int,help='Solve for score S that integrates KDE to this p-val. If S < 0 (S is more rare than anticipated), set S = 0',default=.01)
 parser.add_argument('-o',type=int,help='Order of markov model',default=3)
 parser.add_argument('-w', type=int, help='Window for tile size', default=200)
 parser.add_argument('-s', type=int, help='How many bp to slide tiles', default=20)
@@ -41,10 +42,25 @@ if S < 0:
 target = Reader(args.db)
 targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
 
-targetMap = {}
+targetMap = defaultdict(list)
 for tHead,tSeq in zip(targetHeaders,targetSeqs):
-    print(tHead)
-    tileScores = [corefunctions.classify(tSeq[i:i+w,args.o,lgTbl,alphabet]) for i in range(0,len(tSeq),args.s)]
-    targetMap[tHead] = [tileScores,manaStats.tileE(tileScores)]
+    tileScores = np.array([corefunctions.classify(tSeq[i:i+args.w],args.o,lgTbl,alphabet) for i in range(0,len(tSeq),args.s)])
+    randSums = np.zeros(30)
+    for i in range(30):
+        samp = np.array(kde.best_estimator_.sample(len(tileScores)))
+        randSums[i] = np.sum(samp[samp>0])
+    normSums = norm(np.mean(randSums),np.std(randSums))
+    P = 1-normSums.cdf(np.sum(tileScores[tileScores>0]))
 
-print(targetMap)
+    targetMap[tHead].append([np.sum(tileScores[tileScores>0]),P,np.sum(tileScores>0),manaStats.tileE(tileScores,args.p,np.sum(tileScores>0))])
+
+    for i,tileScore in enumerate(tileScores):
+        if tileScore > S:
+            targetMap[tHead].append(f'{i}\t{i*args.s}:{(i*args.s)+args.w}\t{tSeq[i*args.s:(i*args.s)+args.w]}\t{tileScore}\t{manaStats.integrate(kde.best_estimator_,1000,-100,tileScore)[0]}\n')
+
+with open('./align.txt','w') as outfile:
+    for h,data in targetMap.items():
+        outfile.write(f'$ {tHead}\t{data[0]}\n')
+        outfile.write(f'Tile\tbp Range\tSequence\tLog-Likelihood\tp-val\n')
+        for string in data[1:]:
+            outfile.write(string)
