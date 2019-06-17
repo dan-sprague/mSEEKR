@@ -6,6 +6,7 @@ import numpy as np
 from seekr.fasta_reader import Reader
 from scipy.stats import norm
 from collections import defaultdict
+from tqdm import tqdm
 parser = argparse.ArgumentParser()
 parser.add_argument("--query",type=str,help='Target sequences')
 parser.add_argument('--null', type=str,help='Sequences that compose null model')
@@ -31,6 +32,7 @@ np.savetxt(f'{args.prefix}_{args.o}order_LRTbl.mkv',lgTbl)
 
 probMap = {'A':.3,'T':.3,'C':.2,'G':.2}
 probs = [probMap[letter] for letter in args.a]
+print('\nGenerating model of score distribution')
 randSeqs = [manaStats.dnaGen(args.w,alphabet,probs) for i in range(1000)]
 randSeqsScore = np.array([corefunctions.classify(seq,args.o,lgTbl,alphabet) for seq in randSeqs])
 kde = manaStats.KDE(randSeqsScore.reshape(-1,1))
@@ -38,11 +40,12 @@ kde = manaStats.KDE(randSeqsScore.reshape(-1,1))
 S = manaStats.kdeCDF(kde.best_estimator_,1000,-100,100,args.p)
 if S < 0:
     S = 0
-
+print('\nDone')
 target = Reader(args.db)
 targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
 
 targetMap = defaultdict(list)
+print('\nScanning database sequences')
 for tHead,tSeq in zip(targetHeaders,targetSeqs):
     tileScores = np.array([corefunctions.classify(tSeq[i:i+args.w],args.o,lgTbl,alphabet) for i in range(0,len(tSeq),args.s)])
     randSums = np.zeros(30)
@@ -54,10 +57,17 @@ for tHead,tSeq in zip(targetHeaders,targetSeqs):
 
     targetMap[tHead].append([np.sum(tileScores[tileScores>0]),P,np.sum(tileScores>0),manaStats.tileE(tileScores,args.p,np.sum(tileScores>0))])
 
-    for i,tileScore in enumerate(tileScores):
-        if tileScore > S:
-            targetMap[tHead].append(f'{i}\t{i*args.s}:{(i*args.s)+args.w}\t{tSeq[i*args.s:(i*args.s)+args.w]}\t{tileScore}\t{manaStats.integrate(kde.best_estimator_,1000,-100,tileScore)[0]}\n')
-
+    argSortScores = np.argsort(tileScores)[::-1]
+    argSortScores = argSortScores[argSortScores>S]
+    for i in tqdm(argSortScores):
+        tileScore = tileScores[i]
+        integratedP = manaStats.integrate(kde.best_estimator_,1000,-100,tileScores[i])[0]
+        str1 = f'{i}\t{i*args.s}:{(i*args.s)+args.w}\t'
+        str2 = f'{tSeq[i*args.s:(i*args.s)+args.w]}\t{tileScores[i]}\t'
+        str3 = f'{integratedP}\n'
+        strData = str1+str2+str3
+        targetMap[tHead].append(strData)
+print('\nDone')
 with open('./align.txt','w') as outfile:
     for h,data in targetMap.items():
         outfile.write(f'$ {tHead}\t{data[0]}\n')
