@@ -17,20 +17,15 @@ parser.add_argument('-o',type=int,help='Order of markov model',default=3)
 parser.add_argument('-w', type=int, help='Window for tile size', default=200)
 parser.add_argument('-s', type=int, help='How many bp to slide tiles', default=20)
 parser.add_argument('-a',type=str,help='Alphabet to generate k-mers',default='ATCG')
-parser.add_argument('--gtf',type=str,help='GTF file of loci of interest',default=None)
-parser.add_argument('--narrowPeak',type=str,help='narrowPeak file of protein binding peaks',default=None)
-parser.add_argument('--prefix',type=str,help='Prefix to append to filenames',default='out')
 parser.add_argument('-n',type=int,help='Number of cores to use, default = 1',default=1)
+parser.add_argument('--prefix',type=str,help='Output prefix')
 args = parser.parse_args()
 
 alphabet = [letter for letter in args.a]
 kmers = [''.join(p) for p in itertools.product(alphabet,repeat=args.o)]
 queryMkv = corefunctions.trainModel(args.query,args.o,kmers,alphabet)
 nullMkv = corefunctions.trainModel(args.null,args.o,kmers,alphabet)
-
 lgTbl = corefunctions.logLTbl(queryMkv,nullMkv)
-#np.savetxt(f'{args.prefix}_{args.o}order_LRTbl.mkv',lgTbl)
-
 probMap = {'A':.3,'T':.3,'C':.2,'G':.2}
 probs = [probMap[letter] for letter in args.a]
 print('\nGenerating model of score distribution')
@@ -58,10 +53,12 @@ for tHead,tSeq in zip(targetHeaders,targetSeqs):
     for i in range(1000):
         samp = np.array(kde.sample(len(tileScores)))
         randSums[i] = np.sum(samp[samp>S])
-    normSums = norm(np.mean(randSums),np.std(randSums))
     hitSum = np.sum(tileScores[tileScores>S])
-    sumP = 1-normSums.cdf(hitSum)
-    if np.isnan(sumP):
+    if any(randSums>0):
+        normSums = norm(np.mean(randSums),np.std(randSums))
+        sumP = 1-normSums.cdf(hitSum)
+    # No sums greater than S were observed
+    else:
         sumP=0
     targetMap[tHead].append([hitSum,sumP,np.sum(tileScores>S),manaStats.tileE(tileScores,args.p,np.sum(tileScores>S))])
     argSortScores = np.argsort(tileScores)[::-1]
