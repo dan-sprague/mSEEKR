@@ -20,7 +20,7 @@ def KDE(arr):
     kdeModel = KernelDensity(bandwidth=bandwidth)
     return kdeModel.fit(arr)
 def kdeCDF(K,n,a,b,p):
-    h = (b-a)/n
+    h = (b-a)/nh
     A = .5 * h * (f(a,K)+f(b,K))
     count =0
     while A <= (1-p):

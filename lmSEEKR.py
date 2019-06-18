@@ -1,24 +1,23 @@
 import corefunctions
-import manaStats
+import coreStats
 import argparse
 import itertools
 import numpy as np
 from seekr.fasta_reader import Reader
 from scipy.stats import norm
 from collections import defaultdict
-from tqdm import tqdm
 from multiprocessing import pool
 parser = argparse.ArgumentParser()
-parser.add_argument("--query",type=str,help='Path to fasta file containing sequences to build markov model')
-parser.add_argument('--null', type=str,help='Path to fasta file containing sequences that compose null model')
+parser.add_argument("--query",type=str,help='Path to fasta file containing sequences to build markov model (e.g. functional regions of a ncRNA)')
+parser.add_argument('--null', type=str,help='Path to fasta file containing sequences that compose null model (e.g. transcriptome, genome, etc.)')
 parser.add_argument('--db',type=str,help='Path to fasta file with sequences to calculate similarity score')
-parser.add_argument('-p', type=int,help='Desired p-val of score to consider significant. If P(S > 0) is very small and less than this argument, set S = 0 and P = P(S>0)',default=.01)
-parser.add_argument('-o',type=int,help='Order of markov model',default=3)
-parser.add_argument('-w', type=int, help='Window for tile size', default=200)
-parser.add_argument('-s', type=int, help='How many bp to slide tiles', default=20)
-parser.add_argument('-a',type=str,help='Alphabet to generate k-mers',default='ATCG')
-parser.add_argument('-n',type=int,help='Number of cores to use, default = 1',default=1)
-parser.add_argument('--prefix',type=str,help='Output prefix')
+parser.add_argument('-p', type=int,help='Float > 0 and < 1, Desired p-val of log-likelihood ratio score "S" to consider significant. If P(S > 0) is very small and less than this argument, set S = 0 and p = P(S>0); default=.01',default=.01)
+parser.add_argument('-k',type=int,help='Integer >= 1, k-mer length, markov chain is of order k-1, P(N|N1,N2,...,Nk-1);default=3',default=3)
+parser.add_argument('-w', type=int, help='Integer >= k, length of tile sizes; default=200', default=200)
+parser.add_argument('-s', type=int, help='Integer >=1, how many bp to slide tiles. Increasing this parameter decreases compute time significantly; default=20', default=20)
+parser.add_argument('-a',type=str,help='String, Alphabet to generate k-mers (e.g. ATCG); default=ATCG',default='ATCG')
+parser.add_argument('-n',type=int,help='Integer >= 1, <= max(cpuCores), Number of processor cores to use; default = 1',default=1)
+parser.add_argument('--prefix',type=str,help='String, Output file prefix;default=None')
 args = parser.parse_args()
 
 alphabet = [letter for letter in args.a]
@@ -31,18 +30,18 @@ probMap = {'A':.3,'T':.3,'C':.2,'G':.2}
 probs = [probMap[letter] for letter in args.a]
 print('Done')
 print('\nGenerating model of score distribution')
-randSeqs = [manaStats.dnaGen(args.w,alphabet,probs) for i in range(5000)]
+randSeqs = [coreStats.dnaGen(args.w,alphabet,probs) for i in range(5000)]
 randSeqsScore = np.array([corefunctions.classify(seq,args.o,lgTbl,alphabet) for seq in randSeqs])
-kde = manaStats.KDE(randSeqsScore.reshape(-1,1))
+kde = coreStats.KDE(randSeqsScore.reshape(-1,1))
 
 # Calculate lower limit of integration and integrate KDE
 lowerLimit= np.min(lgTbl) * args.w
-S = manaStats.kdeCDF(kde,5000,lowerLimit,100,args.p)
+S = coreStats.kdeCDF(kde,5000,lowerLimit,100,args.p)
 print(f'Score Threshold: {S}')
 # If P(S > 0) < args.p, set S = 0
 if S < 0:
     S = 0
-    args.p = manaStats.integrate(kde,5000,lowerLimit,S)[0]
+    args.p = coreStats.integrate(kde,5000,lowerLimit,S)[0]
 print('\nDone')
 target = Reader(args.db)
 targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
@@ -62,13 +61,13 @@ for tHead,tSeq in zip(targetHeaders,targetSeqs):
     # No sums greater than S were observed
     else:
         sumP=0
-    targetMap[tHead].append([hitSum,sumP,np.sum(tileScores>S),manaStats.tileE(tileScores,args.p,np.sum(tileScores>S))])
+    targetMap[tHead].append([hitSum,sumP,np.sum(tileScores>S),coreStats.tileE(tileScores,args.p,np.sum(tileScores>S))])
     argSortScores = np.argsort(tileScores)[::-1]
     idxHit = np.nonzero(tileScores>S)
     argSortScores = argSortScores[np.isin(argSortScores,idxHit)]
     for i in argSortScores:
         tileScore = tileScores[i]
-        integratedP = manaStats.integrate(kde,5000,lowerLimit,tileScore)[0]
+        integratedP = coreStats.integrate(kde,1000,lowerLimit,tileScore)[0]
         str1 = f'{i}\t{i*args.s}:{(i*args.s)+args.w}\t'
         str2 = f'{tSeq[i*args.s:(i*args.s)+args.w]}\t{tileScore}\t'
         str3 = f'{integratedP}\n'

@@ -4,12 +4,8 @@ from itertools import product
 from seekr.kmer_counts import BasicCounter
 from seekr.fasta_reader import Reader
 from tqdm import tqdm as tqdm
-
 from seekr.fasta_reader import Reader
-import matplotlib.pyplot as plt
-import seaborn as sns
 from itertools import groupby
-from operator import itemgetter
 from collections import defaultdict
 
 def classify(seq, k, lrTab,alphabet):
