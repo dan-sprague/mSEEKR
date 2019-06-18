@@ -50,6 +50,7 @@ def trainModel(fasta,k,kmers,alphabet):
     #Reverse length normalization of seekr
     qUnNormCounts = q.counts.T*[len(s) for s in q.seqs]/1000
     qCounts = np.rint(qUnNormCounts.T)
+    qCounts+=1
     qCounts = np.mean(qCounts,axis=0)
     currKmers = dict(zip(kmers,qCounts))
     qTransMat = markov_chain(currKmers,k,alphabet)
