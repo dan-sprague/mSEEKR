@@ -1,6 +1,6 @@
 from scipy.stats import poisson
 from sklearn.neighbors import KernelDensity
-from sklearn.model_selection import GridSearchCV
+#from sklearn.model_selection import GridSearchCV
 import numpy as np
 import itertools
 from itertools import product
@@ -12,14 +12,11 @@ from operator import itemgetter
 from collections import defaultdict
 from numpy.random import choice
 from scipy.stats import norm
-from scipy.stats import poisson
-from sklearn.neighbors import KernelDensity
 def dnaGen(length,alphabet,probs):
     DNA = choice(alphabet,length,p=probs)
     return ''.join(DNA)
 def KDE(arr):
     bandwidth = (1.06*np.std(arr)*(len(arr)**(-1/5)))
-    print(f'KDE CV Parameter:{bandwidth}')
     kdeModel = KernelDensity(bandwidth=bandwidth)
     return kdeModel.fit(arr)
 def kdeCDF(K,n,a,b,p):
