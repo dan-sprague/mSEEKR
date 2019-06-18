@@ -22,12 +22,14 @@ parser.add_argument('--prefix',type=str,help='Output prefix')
 args = parser.parse_args()
 
 alphabet = [letter for letter in args.a]
+print('Counting k-mers...')
 kmers = [''.join(p) for p in itertools.product(alphabet,repeat=args.o)]
 queryMkv = corefunctions.trainModel(args.query,args.o,kmers,alphabet)
 nullMkv = corefunctions.trainModel(args.null,args.o,kmers,alphabet)
 lgTbl = corefunctions.logLTbl(queryMkv,nullMkv)
 probMap = {'A':.3,'T':.3,'C':.2,'G':.2}
 probs = [probMap[letter] for letter in args.a]
+print('Done')
 print('\nGenerating model of score distribution')
 randSeqs = [manaStats.dnaGen(args.w,alphabet,probs) for i in range(5000)]
 randSeqsScore = np.array([corefunctions.classify(seq,args.o,lgTbl,alphabet) for seq in randSeqs])
