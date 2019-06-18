@@ -32,25 +32,29 @@ np.savetxt(f'{args.prefix}_{args.o}order_LRTbl.mkv',lgTbl)
 
 probMap = {'A':.3,'T':.3,'C':.2,'G':.2}
 probs = [probMap[letter] for letter in args.a]
-randSeqs = [manaStats.dnaGen(args.w,alphabet,probs) for i in range(1000)]
+print('\nGenerating model of score distribution')
+randSeqs = [manaStats.dnaGen(args.w,alphabet,probs) for i in range(5000)]
 randSeqsScore = np.array([corefunctions.classify(seq,args.o,lgTbl,alphabet) for seq in randSeqs])
 kde = manaStats.KDE(randSeqsScore.reshape(-1,1))
 
-S = manaStats.kdeCDF(kde.best_estimator_,1000,-100,100,args.p)
+S = manaStats.kdeCDF(kde.best_estimator_,5000,-100,50,args.p)
+print(f'Score Threshold: {S}')
 if S < 0:
     S = 0
-
+print('\nDone')
 target = Reader(args.db)
 targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
 
 targetMap = defaultdict(list)
+print('\nScanning database sequences')
 for tHead,tSeq in zip(targetHeaders,targetSeqs):
     tileScores = np.array([corefunctions.classify(tSeq[i:i+args.w],args.o,lgTbl,alphabet) for i in range(0,len(tSeq),args.s)])
     randSums = np.zeros(30)
     for i in range(30):
         samp = np.array(kde.best_estimator_.sample(len(tileScores)))
-        randSums[i] = np.sum(samp[samp>0])
+        randSums[i] = np.sum(samp[samp>S])
     normSums = norm(np.mean(randSums),np.std(randSums))
+<<<<<<< HEAD
     P = 1-normSums.cdf(np.sum(tileScores[tileScores>0]))
 
     targetMap[tHead].append([np.sum(tileScores[tileScores>0]),P,np.sum(tileScores>0),manaStats.tileE(tileScores,args.p,np.sum(tileScores>0))])
@@ -58,8 +62,24 @@ for tHead,tSeq in zip(targetHeaders,targetSeqs):
     for i,tileScore in tqdm(enumerate(tileScores)):
         if tileScore > S:
             targetMap[tHead].append(f'{i}\t{i*args.s}:{(i*args.s)+args.w}\t{tSeq[i*args.s:(i*args.s)+args.w]}\t{tileScore}\t{manaStats.integrate(kde.best_estimator_,1000,-100,tileScore)[0]}\n')
+=======
+    P = 1-normSums.cdf(np.sum(tileScores[tileScores>S]))
+>>>>>>> test
 
-with open('./align.txt','w') as outfile:
+    targetMap[tHead].append([np.sum(tileScores[tileScores>S]),P,np.sum(tileScores>S),manaStats.tileE(tileScores,args.p,np.sum(tileScores>S))])
+    argSortScores = np.argsort(tileScores)[::-1]
+    idxHit = np.nonzero(tileScores>S)
+    argSortScores = argSortScores[np.isin(argSortScores,idxHit)]
+    for i in argSortScores:
+        tileScore = tileScores[i]
+        integratedP = manaStats.integrate(kde.best_estimator_,500,-100,tileScore)[0]
+        str1 = f'{i}\t{i*args.s}:{(i*args.s)+args.w}\t'
+        str2 = f'{tSeq[i*args.s:(i*args.s)+args.w]}\t{tileScore}\t'
+        str3 = f'{integratedP}\n'
+        strData = str1+str2+str3
+        targetMap[tHead].append(strData)
+print('\nDone')
+with open(f'./{args.prefix}_align.txt','w') as outfile:
     for h,data in targetMap.items():
         outfile.write(f'$ {tHead}\t{data[0]}\n')
         outfile.write(f'Tile\tbp Range\tSequence\tLog-Likelihood\tp-val\n')

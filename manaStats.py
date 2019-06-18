@@ -19,9 +19,11 @@ def dnaGen(length,alphabet,probs):
     return ''.join(DNA)
 def KDE(arr):
     grid = GridSearchCV(KernelDensity(),
-                    {'bandwidth': np.linspace(0.1, 3, 30)},
-                    cv=10)
-    return grid.fit(arr)
+                    {'bandwidth': np.linspace(0.1, 3, 15)},
+                    cv=5)
+    fit = grid.fit(arr)
+    print(f'KDE CV Parameter:{fit.best_params_}')
+    return fit
 def kdeCDF(K,n,a,b,p):
     h = (b-a)/n
     A = .5 * h * (f(a,K)+f(b,K))
