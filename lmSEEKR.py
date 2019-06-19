@@ -50,23 +50,24 @@ for agg in [2,3,4]:
         F = 0
         i=1
         while F < (1 - args.p):
-            F=kde.integrate_box(lowerLimit,x[i])
+            F=kde.integrate_box_1d(lowerLimit,x[i])
             i+=1
+        minP = 1-kde.integrate_box_1d(lowerLimit,upperLimit)
+        minP = f'< {10**np.ceil(np.log10(abs(minP)))}'
         S = x[i]
         # testNorm = norm(np.mean(randSeqsScore),np.std(randSeqsScore))
         # Calculate lower limit of integration and integrate KDE
         #S = coreStats.slvLimit(kde,1000,lowerLimit,upperLimit,args.p)
 
-        print(f'Score Threshold: {S}\nEst. p-val: {1-kde.integrate_box(lowerLimit,S)}')
+        print(f'Score Threshold: {S}\nEst. p-val: {1-kde.integrate_box_1d(lowerLimit,S)}')
         # If P(S > 0) < args.p, set S = 0
         if S < 0:
             S = 0
-            args.p = 1-kde.integrate_box(lowerLimit,S)
+            args.p = 1-kde.integrate_box_1d(lowerLimit,S)
             print(f'S < 0, setting S = 0\np-val: {args.p}')
         print('\nDone')
         target = Reader(args.db)
         targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
-
         targetMap = defaultdict(list)
         print('\nScanning database sequences')
         for tHead,tSeq in zip(targetHeaders,targetSeqs):
@@ -88,7 +89,9 @@ for agg in [2,3,4]:
             argSortScores = argSortScores[np.isin(argSortScores,idxHit)]
             for i in argSortScores:
                 tileScore = tileScores[i]
-                integratedP = 1-kde.integrate_box(-10000,tileScore)
+                integratedP = 1-kde.integrate_box_1d(lowerLimit,tileScore)
+                if integratedP <= 0:
+                    integratedP = minP
                 #integratedP = 1-testNorm.cdf(tileScore)
                 str1 = f'{i}\t{i*args.s}:{(i*args.s)+args.w}\t'
                 str2 = f'{tSeq[i*args.s:(i*args.s)+args.w]}\t{tileScore}\t'
@@ -98,7 +101,7 @@ for agg in [2,3,4]:
         print('\nDone')
         with open(f'./{args.prefix}_{args.k}o_{args.w}w_{args.s}sl_HSS.txt','w') as outfile:
             for h,data in targetMap.items():
-                outfile.write(f'$ {tHead}\t{data[0]}\n')
+                outfile.write(f'$ {h}\t{data[0]}\n')
                 outfile.write(f'Tile\tbp Range\tSequence\tLog-Likelihood\tp-val\n')
                 for string in data[1:]:
                     outfile.write(string)
