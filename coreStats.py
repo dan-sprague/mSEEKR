@@ -21,23 +21,23 @@ def KDE(arr):
     bandwidth = (1.06*np.std(arr)*(len(arr)**(-1/5)))
     kdeModel = KernelDensity(bandwidth=bandwidth)
     return kdeModel.fit(arr)
-def slvLimit(K,n,a,b,p):
-    h = (b-a)/n
-    A = .5 * h * (f(a,K))
-    count =1
-    while A <= (1-p):
-        A += h * f(a+(count*h),K)
-        count+=1
-    return a + (count*h)
-def integrate(b,x,y):
-    x = x[x<=b]
-    y = y[:len(x)]
-    AUC = simps(y,x)
-    return 1.0-AUC
-def f(x,kde):
-    return np.exp(kde.score_samples(np.array(x).reshape(-1,1)))
-
+# def slvLimit(K,n,a,b,p):
+#     h = (b-a)/n
+#     A = .5 * h * (f(a,K))
+#     count =1
+#     while A <= (1-p):
+#         A += h * f(a+(count*h),K)
+#         count+=1
+#     return a + (count*h)
+# def integrate(b,x,y):
+#     x = x[x<=b]
+#     y = y[:len(x)]
+#     AUC = simps(y,x)
+#     return 1.0-AUC
 def tileE(x,P,O):
     E = len(x)*P
     rv = poisson(E)
     return 1-rv.cdf(O)
+# def findS(x,y,p):
+#     idx = np.abs(y-p).argmin()
+#     return x[idx]

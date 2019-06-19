@@ -7,6 +7,8 @@ from seekr.fasta_reader import Reader
 from scipy.stats import norm
 from collections import defaultdict
 from multiprocessing import pool
+from scipy.stats import gaussian_kde
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--query",type=str,help='Path to fasta file containing sequences to build markov model (e.g. functional regions of a ncRNA)')
 parser.add_argument('--null', type=str,help='Path to fasta file containing sequences that compose null model (e.g. transcriptome, genome, etc.)')
@@ -36,17 +38,22 @@ print('Done')
 print('\nGenerating model of score distribution')
 randSeqs = [coreStats.dnaGen(args.w,alphabet,probs) for i in range(args.nRAND)]
 randSeqsScore = np.array([corefunctions.classify(seq,args.k,lgTbl,alphabet) for seq in randSeqs])
-kde = coreStats.KDE(randSeqsScore)
+kde = gaussian_kde(randSeqsScore)
 lowerLimit= np.min(lgTbl) * args.w
 upperLimit = np.max(lgTbl) * args.w
-# x = np.linspace(lowerLimit,upperLimit,10000)
-# y = np.exp(kde.score_samples(x.reshape(-1,1)))
-#
+x = np.linspace(lowerLimit,upperLimit,10000)
+y = kde.pdf(x)
+F = 0
+i=1
+while F < (1 - args.p):
+    F=kde.integrate_box(lowerLimit,x[i])
+    i+=1
+S = x[i]
 # testNorm = norm(np.mean(randSeqsScore),np.std(randSeqsScore))
 # Calculate lower limit of integration and integrate KDE
 #S = coreStats.slvLimit(kde,1000,lowerLimit,upperLimit,args.p)
-S = 0
-print(f'Score Threshold: {S}')
+
+print(f'Score Threshold: {S}\nEst. p-val: {1-kde.integrate_box(lowerLimit,S)}')
 # If P(S > 0) < args.p, set S = 0
 if S < 0:
     S = 0
