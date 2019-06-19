@@ -57,8 +57,8 @@ print(f'Score Threshold: {S}\nEst. p-val: {1-kde.integrate_box(lowerLimit,S)}')
 # If P(S > 0) < args.p, set S = 0
 if S < 0:
     S = 0
-    args.p = coreStats.integrate(S,x,y)
-    print('S < 0, setting S = 0')
+    args.p = kde.integrate_box(lowerLimit,S)
+    print(f'S < 0, setting S = 0\np-val: {args.p}')
 print('\nDone')
 target = Reader(args.db)
 targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
