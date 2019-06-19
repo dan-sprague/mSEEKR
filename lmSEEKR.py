@@ -35,15 +35,17 @@ print('\nGenerating model of score distribution')
 randSeqs = [coreStats.dnaGen(args.w,alphabet,probs) for i in range(args.nRAND)]
 randSeqsScore = np.array([corefunctions.classify(seq,args.k,lgTbl,alphabet) for seq in randSeqs])
 kde = coreStats.KDE(randSeqsScore.reshape(-1,1))
-
-# Calculate lower limit of integration and integrate KDE
 lowerLimit= np.min(lgTbl) * args.w
-S = coreStats.kdeCDF(kde,5000,lowerLimit,100,args.p)
+upperLimit = np.max(lgTbl) * args.w
+x = np.linspace(lowerLimit,upperLimit,10000)
+y = np.exp(kde.score_samples(x.reshape(-1,1)))
+# Calculate lower limit of integration and integrate KDE
+S = coreStats.kdeCDF(kde,5000,lowerLimit,upperLimit,args.p)
 print(f'Score Threshold: {S}')
 # If P(S > 0) < args.p, set S = 0
 if S < 0:
     S = 0
-    args.p = coreStats.integrate(kde,5000,lowerLimit,S)[0]
+    args.p = coreStats.integrate(S,x,y)
     print('S < 0, setting S = 0')
 print('\nDone')
 target = Reader(args.db)
@@ -70,7 +72,7 @@ for tHead,tSeq in zip(targetHeaders,targetSeqs):
     argSortScores = argSortScores[np.isin(argSortScores,idxHit)]
     for i in argSortScores:
         tileScore = tileScores[i]
-        integratedP = coreStats.integrate(kde,1000,lowerLimit,tileScore)[0]
+        integratedP = coreStats.integrate(tileScore,x,y)
         str1 = f'{i}\t{i*args.s}:{(i*args.s)+args.w}\t'
         str2 = f'{tSeq[i*args.s:(i*args.s)+args.w]}\t{tileScore}\t'
         str3 = f'{integratedP}\n'
