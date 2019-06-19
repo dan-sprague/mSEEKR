@@ -21,6 +21,8 @@ parser.add_argument('-a',type=str,help='String, Alphabet to generate k-mers (e.g
 parser.add_argument('-n',type=int,help='Integer >= 1, <= max(cpuCores), Number of processor cores to use; default = 1',default=1)
 parser.add_argument('--prefix',type=str,help='String, Output file prefix;default=None')
 args = parser.parse_args()
+# k = [2,3,4]
+# w = [(25,10),(50,20),(100,20),(200,20),(500,20)]
 
 alphabet = [letter for letter in args.a]
 print('Counting k-mers...')
@@ -34,13 +36,16 @@ print('Done')
 print('\nGenerating model of score distribution')
 randSeqs = [coreStats.dnaGen(args.w,alphabet,probs) for i in range(args.nRAND)]
 randSeqsScore = np.array([corefunctions.classify(seq,args.k,lgTbl,alphabet) for seq in randSeqs])
-kde = coreStats.KDE(randSeqsScore.reshape(-1,1))
+kde = coreStats.KDE(randSeqsScore)
 lowerLimit= np.min(lgTbl) * args.w
 upperLimit = np.max(lgTbl) * args.w
-x = np.linspace(lowerLimit,upperLimit,10000)
-y = np.exp(kde.score_samples(x.reshape(-1,1)))
+# x = np.linspace(lowerLimit,upperLimit,10000)
+# y = np.exp(kde.score_samples(x.reshape(-1,1)))
+#
+# testNorm = norm(np.mean(randSeqsScore),np.std(randSeqsScore))
 # Calculate lower limit of integration and integrate KDE
-S = coreStats.kdeCDF(kde,5000,lowerLimit,upperLimit,args.p)
+#S = coreStats.slvLimit(kde,1000,lowerLimit,upperLimit,args.p)
+S = 0
 print(f'Score Threshold: {S}')
 # If P(S > 0) < args.p, set S = 0
 if S < 0:
@@ -57,7 +62,7 @@ for tHead,tSeq in zip(targetHeaders,targetSeqs):
     tileScores = np.array([corefunctions.classify(tSeq[i:i+args.w],args.k,lgTbl,alphabet) for i in range(0,len(tSeq),args.s)])
     randSums = np.zeros(1000)
     for i in range(1000):
-        samp = np.array(kde.sample(len(tileScores)))
+        samp = np.array(kde.resample(len(tileScores)))
         randSums[i] = np.sum(samp[samp>S])
     hitSum = np.sum(tileScores[tileScores>S])
     if any(randSums>0):
@@ -72,7 +77,8 @@ for tHead,tSeq in zip(targetHeaders,targetSeqs):
     argSortScores = argSortScores[np.isin(argSortScores,idxHit)]
     for i in argSortScores:
         tileScore = tileScores[i]
-        integratedP = coreStats.integrate(tileScore,x,y)
+        integratedP = 1-kde.integrate_box(-10000,tileScore)
+        #integratedP = 1-testNorm.cdf(tileScore)
         str1 = f'{i}\t{i*args.s}:{(i*args.s)+args.w}\t'
         str2 = f'{tSeq[i*args.s:(i*args.s)+args.w]}\t{tileScore}\t'
         str3 = f'{integratedP}\n'
