@@ -25,7 +25,6 @@ parser.add_argument('--prefix',type=str,help='String, Output file prefix;default
 args = parser.parse_args()
 # k = [2,3,4]
 # w = [(25,10),(50,20),(100,20),(200,20),(500,20)]
-args.w,args.s = omg,lol
 alphabet = [letter for letter in args.a]
 print('Counting k-mers...')
 kmers = [''.join(p) for p in itertools.product(alphabet,repeat=args.k)]

@@ -17,10 +17,7 @@ from scipy.stats import gaussian_kde
 def dnaGen(length,alphabet,probs):
     DNA = choice(alphabet,length,p=probs)
     return ''.join(DNA)
-def KDE(arr):
-    bandwidth = (1.06*np.std(arr)*(len(arr)**(-1/5)))
-    kdeModel = KernelDensity(bandwidth=bandwidth)
-    return kdeModel.fit(arr)
+
 # def slvLimit(K,n,a,b,p):
 #     h = (b-a)/n
 #     A = .5 * h * (f(a,K))
