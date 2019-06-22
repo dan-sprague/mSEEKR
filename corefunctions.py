@@ -45,6 +45,12 @@ def markov_chain(kmers,k,alphabet):
 
     return conds
 
+def nucContent(nullSeqs,alphabet):
+    countDict = dict(zip(alphabet,np.zeros(len(alphabet))))
+    nullSeqs = ''.join(nullSeqs)
+    for nt in nullSeqs:
+        if nt in countDict.keys():
+            countDict[nt]+=1
 
 def trainModel(fasta,k,kmers,alphabet):
     q = BasicCounter(fasta,k=k,mean=False,std=False,log2=False,alphabet=alphabet)
@@ -67,7 +73,7 @@ def plotTiles(arr,outname,S):
     sns.set_context('talk')
     plt.figure(figsize=(10,6))
     plt.plot(arr)
-    plt.axhline(y=0,linestyle='--',color='black')
+    plt.axhline(y=S,linestyle='--',color='black')
     plt.tight_layout()
     plt.savefig(outname,bbox_inches='tight')
     plt.clf()

@@ -13,7 +13,7 @@ from itertools import product
 def mainCompute(data):
     tHead,tSeq = data
     tileScores = np.array([corefunctions.score(tSeq[i:i+args.w],args.k,lgTbl,alphabet) for i in range(0,len(tSeq),args.s)])
-    corefunctions.plotTiles(tileScores,f'/mnt/c/Users/sprag/Documents/{args.prefix}_{args.k}o_{args.w}w_{args.s}sl_tilePlot_NOTHRESH.pdf',S)
+    corefunctions.plotTiles(tileScores,f'/mnt/c/Users/sprag/Documents/{args.prefix}_{args.k}o_{args.w}w_{args.s}sl_tilePlot.pdf',S)
     randSums = np.zeros(args.nRAND)
     for i in range(args.nRAND):
         samp = np.array(kde.resample(len(tileScores)))
