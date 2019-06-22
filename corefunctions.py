@@ -7,8 +7,10 @@ from tqdm import tqdm as tqdm
 from seekr.fasta_reader import Reader
 from itertools import groupby
 from collections import defaultdict
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-def classify(seq, k, lrTab,alphabet):
+def score(seq, k, lrTab,alphabet):
     seq = seq.upper()
     bits = 0
     nucmap = dict(zip(alphabet,range(len(alphabet))))
@@ -59,3 +61,13 @@ def trainModel(fasta,k,kmers,alphabet):
 
 def logLTbl(q,null):
     return np.log2(q) - np.log2(null)
+
+
+def plotTiles(arr,outname,S):
+    sns.set_context('talk')
+    plt.figure(figsize=(10,6))
+    plt.plot(arr)
+    plt.axhline(y=0,linestyle='--',color='black')
+    plt.tight_layout()
+    plt.savefig(outname,bbox_inches='tight')
+    plt.clf()
