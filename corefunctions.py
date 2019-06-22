@@ -10,40 +10,27 @@ from collections import defaultdict
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-def score(seq, k, lrTab,alphabet):
-    seq = seq.upper()
-    bits = 0
-    nucmap = dict(zip(alphabet,range(len(alphabet))))
-    rowmap = dict(zip([''.join(p) for p in product(alphabet,repeat=k-1)],range(4**(k-1))))
+def score(seq, k, likelihood,alphabet):
+    tot=0
+    nextState = dict(zip(alphabet,range(len(alphabet))))
+    currState = dict(zip([''.join(p) for p in product(alphabet,repeat=k-1)],range(4**(k-1))))
     for kmer in [seq[i:i+k] for i in range(len(seq)-k+1)]:
         if ('N' not in kmer) and ('$' not in kmer):
-            i, j = rowmap[kmer[:k-1]], nucmap[kmer[-1]]
-            #print(f'P({kmer[-1]}|{kmer[:-1]})',lrTab[i,j])
-            bits += lrTab[i, j]
-    return bits
+            i, j = currState[kmer[:k-1]], nextState[kmer[-1]]
+            tot += likelihood[i, j]
+    return tot
 
-def markov_chain(kmers,k,alphabet):
-
-    conds = np.zeros((4**(int(k)-1), 4), dtype=np.float64)
-
-    margs = np.zeros(4, dtype=np.float64)
-
-    for i, ci in enumerate([''.join(p) for p in itertools.product(alphabet,repeat=k-1)]):
-
+def markovChain(kmers,k,alphabet):
+    states = np.zeros((4**(int(k)-1), 4), dtype=np.float64)
+    for i, currState in enumerate([''.join(p) for p in itertools.product(alphabet,repeat=k-1)]):
         tot = 0
-
-        for j, cj in enumerate(alphabet):
-
-            count = kmers[ci+cj]
+        for j, nextState in enumerate(alphabet):
+            count = kmers[currState+nextState]
             tot += count
-
         if tot > 0:
-
-            for j, cj in enumerate(alphabet):
-
-                conds[i, j] = kmers[ci+cj] / float(tot)
-
-    return conds
+            for j, nextState in enumerate(alphabet):
+                states[i, j] = kmers[currState+nextState] / float(tot)
+    return states
 
 def nucContent(nullSeqs,alphabet):
     countDict = dict(zip(alphabet,np.zeros(len(alphabet))))
@@ -61,8 +48,7 @@ def trainModel(fasta,k,kmers,alphabet):
     qCounts+=1
     qCounts = np.mean(qCounts,axis=0)
     currKmers = dict(zip(kmers,qCounts))
-    qTransMat = markov_chain(currKmers,k,alphabet)
-
+    qTransMat = markovChain(currKmers,k,alphabet)
     return qTransMat
 
 def logLTbl(q,null):

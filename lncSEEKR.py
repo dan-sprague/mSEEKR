@@ -9,11 +9,15 @@ from collections import defaultdict
 from multiprocessing import pool
 from scipy.stats import gaussian_kde
 from itertools import product
+import sys
+import os
+import glob
+from math import log
 
 def mainCompute(data):
     tHead,tSeq = data
-    tileScores = np.array([corefunctions.score(tSeq[i:i+args.w],args.k,lgTbl,alphabet) for i in range(0,len(tSeq),args.s)])
-    corefunctions.plotTiles(tileScores,f'/mnt/c/Users/sprag/Documents/{args.prefix}_{args.k}o_{args.w}w_{args.s}sl_tilePlot.pdf',S)
+    tileScores = np.array([corefunctions.score(tSeq[i:i+args.w],k,lgTbl,alphabet) for i in range(0,len(tSeq),args.s)])
+    corefunctions.plotTiles(tileScores,f'/mnt/c/Users/sprag/Documents/{args.prefix}_{k}o_{args.w}w_{args.s}sl_tilePlot.pdf',S)
     randSums = np.zeros(args.nRAND)
     for i in range(args.nRAND):
         samp = np.array(kde.resample(len(tileScores)))
@@ -44,37 +48,39 @@ def mainCompute(data):
     return tHead,[summaryStats,strDataList]
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--query",type=str,help='Path to fasta file containing sequences to build markov model (e.g. functional regions of a ncRNA)')
-parser.add_argument('--null', type=str,help='Path to fasta file containing sequences that compose null model (e.g. transcriptome, genome, etc.)')
+parser.add_argument("--model",type=str,help='Path to fasta file or containing sequences to build markov model (e.g. functional regions of a ncRNA)')
 parser.add_argument('--db',type=str,help='Path to fasta file with sequences to calculate similarity score')
 parser.add_argument('--nRAND',type=int,help='Int >0, Number of random sequences to generate. If using empircal p-vals, minimum p-val is 1/nRAND; default=10^5',default=10**5)
-parser.add_argument('--KDE',type=str,help='FLAG; if passed, use numerical integration of KDE pdf for more accurate p-vals; default = FALSE (empircal p-val)')
+parser.add_argument('--prefix',type=str,help='String, Output file prefix;default=None')
 parser.add_argument('-p', type=int,help='Float, Desired p-val of log-likelihood ratio score "S" to consider significant. If P(S > 0) is very small and less than this argument, set S = 0 and p = P(S>0); default=.01',default=.01)
-parser.add_argument('-k',type=int,help='Integer >= 1, k-mer length, markov chain is of order k-1, P(N|N1,N2,...,Nk-1);default=3',default=3)
 parser.add_argument('-w', type=int, help='Integer >= k, length of tile sizes; default=200', default=200)
 parser.add_argument('-s', type=int, help='Integer >=1, how many bp to slide tiles. Increasing this parameter decreases compute time significantly; default=20', default=20)
 parser.add_argument('-a',type=str,help='String, Alphabet to generate k-mers (e.g. ATCG); default=ATCG',default='ATCG')
 parser.add_argument('-n',type=int,help='Integer 1 <= n <= max(cores), Number of processor cores to use; default = 1',default=1)
-parser.add_argument('--prefix',type=str,help='String, Output file prefix;default=None')
+
+
 args = parser.parse_args()
-k = [2,3,4]
 w = [(25,20),(50,20),(100,20),(200,20),(500,20)]
-for kmer in k:
+
+models = [f for f in glob.iglob('./*mkv')]
+for model in models:
+    args.model = model
+    lgTbl = np.loadtxt(args.model)
+    # Explicitly determine k from the size of the log matrix and the size of the alphabet used to generate it
+    k = int(log(lgTbl.size,len(args.a)))
+    args.prefix = os.path.basename(model).split('_')[0]
     for win,sl in w:
-        args.k,args.w,args.s = kmer,win,sl
+        args.w,args.s = win,sl
         args.p = .01
+
         alphabet = [letter for letter in args.a]
-        print('Counting k-mers...')
-        kmers = [''.join(p) for p in itertools.product(alphabet,repeat=args.k)]
-        queryMkv = corefunctions.trainModel(args.query,args.k,kmers,alphabet)
-        nullMkv = corefunctions.trainModel(args.null,args.k,kmers,alphabet)
-        lgTbl = corefunctions.logLTbl(queryMkv,nullMkv)
+        kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)]
         probMap = {'A':.3,'T':.3,'C':.2,'G':.2}
         probs = [probMap[letter] for letter in args.a]
         print('Done')
         print('\nGenerating model of score distribution')
         randSeqs = [coreStats.dnaGen(args.w,alphabet,probs) for i in range(args.nRAND)]
-        randSeqsScore = np.array([corefunctions.score(seq,args.k,lgTbl,alphabet) for seq in randSeqs])
+        randSeqsScore = np.array([corefunctions.score(seq,k,lgTbl,alphabet) for seq in randSeqs])
         kde = gaussian_kde(randSeqsScore)
         lowerLimit= np.min(lgTbl) * args.w
         upperLimit = np.max(lgTbl) * args.w
@@ -105,7 +111,7 @@ for kmer in k:
             jobs = multiN.starmap(mainCompute,product(*[list(zip(targetHeaders,targetSeqs))]))
             dataDict = dict(jobs)
         print('\nDone')
-        with open(f'./{args.prefix}_{args.k}o_{args.w}w_{args.s}sl_HSS.txt','w') as outfile:
+        with open(f'./{args.prefix}_{k}o_{args.w}w_{args.s}sl_HSS.txt','w') as outfile:
             for h,data in dataDict.items():
                 outfile.write(f'$ {h}\t{data[0]}\n')
                 outfile.write(f'Tile\tbp Range\tSequence\tLog-Likelihood\tp-val\n')
