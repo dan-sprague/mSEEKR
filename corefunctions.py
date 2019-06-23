@@ -12,17 +12,19 @@ import matplotlib.pyplot as plt
 
 def score(seq, k, likelihood,alphabet):
     tot=0
+    kmers = [seq[i:i+k] for i in range(len(seq)-k+1)]
     nextState = dict(zip(alphabet,range(len(alphabet))))
     currState = dict(zip([''.join(p) for p in product(alphabet,repeat=k-1)],range(4**(k-1))))
-    for kmer in [seq[i:i+k] for i in range(len(seq)-k+1)]:
+    for kmer in kmers:
         if ('N' not in kmer) and ('$' not in kmer):
             i, j = currState[kmer[:k-1]], nextState[kmer[-1]]
             tot += likelihood[i, j]
     return tot
 
-def markovChain(kmers,k,alphabet):
+def transitionMatrix(kmers,k,alphabet):
     states = np.zeros((4**(int(k)-1), 4), dtype=np.float64)
-    for i, currState in enumerate([''.join(p) for p in itertools.product(alphabet,repeat=k-1)]):
+    stateKmers = [''.join(p) for p in itertools.product(alphabet,repeat=k-1)]
+    for i, currState in enumerate(stateKmers):
         tot = 0
         for j, nextState in enumerate(alphabet):
             count = kmers[currState+nextState]
@@ -45,10 +47,10 @@ def trainModel(fasta,k,kmers,alphabet):
     #Reverse length normalization of seekr
     qUnNormCounts = q.counts.T*[len(s) for s in q.seqs]/1000
     qCounts = np.rint(qUnNormCounts.T)
-    qCounts+=1
+    # qCounts+=1
     qCounts = np.mean(qCounts,axis=0)
     currKmers = dict(zip(kmers,qCounts))
-    qTransMat = markovChain(currKmers,k,alphabet)
+    qTransMat = transitionMatrix(currKmers,k,alphabet)
     return qTransMat
 
 def logLTbl(q,null):

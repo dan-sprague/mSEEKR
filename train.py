@@ -34,4 +34,4 @@ for kmer in k:
     nullMkv = corefunctions.trainModel(args.null,kmer,kmers,alphabet)
     lgTbl = corefunctions.logLTbl(queryMkv,nullMkv)
 
-    np.savetxt(f'{args.qPrefix}_{args.nullPrefix}.{kmer}mkv',lgTbl)
+    np.savetxt(f'{args.qPrefix}_{args.nullPrefix}_{kmer}.mkv',lgTbl)
