@@ -18,7 +18,6 @@ def mainCompute(data):
     tHead,tSeq = data
     tiles = [tSeq[i:i+args.w] for i in range(0,len(tSeq)-args.w+1,args.s)]
     tileScores = np.array([corefunctions.score(tile,k,lgTbl,alphabet) for tile in tiles])
-    corefunctions.plotTiles(tileScores,f'/mnt/c/Users/sprag/Documents/{args.prefix}_{k}_{args.w}w_{args.s}sl_tilePlot.pdf',S)
     randSums = np.zeros(args.nRAND)
     for i in range(args.nRAND):
         samp = np.array(kde.resample(len(tileScores)))
