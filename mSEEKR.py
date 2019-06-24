@@ -34,7 +34,9 @@ def mainCompute(data):
     idxHit = np.nonzero(tileScores>S)
     argSortScores = argSortScores[np.isin(argSortScores,idxHit)]
     strDataList = []
+    bpHits = []
     for i in argSortScores:
+        bpHits.append(list(range((i*args.s),(i*args.s)+args.w)))
         tileScore = tileScores[i]
         integratedP = 1-kde.integrate_box(lowerLimit,tileScore)
         if integratedP <= 0:
@@ -45,14 +47,16 @@ def mainCompute(data):
         str3 = f'{integratedP}\n'
         strData = str1+str2+str3
         strDataList.append(strData)
-    return tHead,[summaryStats,strDataList]
+    bpHits = np.sort(np.unique(np.array(bpHits).flatten()))
+    return tHead,[summaryStats,strDataList,[''.join([tSeq[i] for i in bpHits])]]
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--model",type=str,help='Path to fasta file or containing sequences to build markov model (e.g. functional regions of a ncRNA)')
+parser.add_argument("--model",type=str,help='Path to directory containing .mkv files or path to a single .mkv file;default=./',default='./markovModels/')
 parser.add_argument('--db',type=str,help='Path to fasta file with sequences to calculate similarity score')
-parser.add_argument('--nRAND',type=int,help='Int >0, Number of random sequences to generate. If using empircal p-vals, minimum p-val is 1/nRAND; default=10^5',default=10**5)
+parser.add_argument('--nRAND',type=int,help='Int >0, Number of random sequences to generate. default=10^5',default=10**5)
 parser.add_argument('--prefix',type=str,help='String, Output file prefix;default=None')
-parser.add_argument('-p', type=int,help='Float, Desired p-val of log-likelihood ratio score "S" to consider significant. If P(S > 0) is very small and less than this argument, set S = 0 and p = P(S>0); default=.01',default=.01)
+parser.add_argument('--retrain',help='Save unique sequence hits to fasta file for markov training',action='store_true')
+parser.add_argument('-p', type=float,help='Float, Desired p-val of log-likelihood ratio score "S" to consider significant. If P(S > 0) is very small and less than this argument, set S = 0 and p = P(S>0); default=.01',default=.01)
 parser.add_argument('-w', type=int, help='Integer >= k, length of tile sizes; default=200', default=200)
 parser.add_argument('-s', type=int, help='Integer >=1, how many bp to slide tiles. Increasing this parameter decreases compute time significantly; default=20', default=20)
 parser.add_argument('-a',type=str,help='String, Alphabet to generate k-mers (e.g. ATCG); default=ATCG',default='ATCG')
@@ -61,49 +65,61 @@ parser.add_argument('-n',type=int,help='Integer 1 <= n <= max(cores), Number of 
 
 args = parser.parse_args()
 
-lgTbl = np.loadtxt(args.model)
-# Explicitly determine k from the size of the log matrix and the size of the alphabet used to generate it
-k = int(log(lgTbl.size,len(args.a)))
-alphabet = [letter for letter in args.a]
-kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)]
-probMap = {'A':.3,'T':.3,'C':.2,'G':.2}
-probs = [probMap[letter] for letter in args.a]
-print('\nGenerating model of score distribution')
-randSeqs = [coreStats.dnaGen(args.w,alphabet,probs) for i in range(args.nRAND)]
-randSeqsScore = np.array([corefunctions.score(seq,k,lgTbl,alphabet) for seq in randSeqs])
-kde = gaussian_kde(randSeqsScore)
-lowerLimit= np.min(lgTbl) * args.w
-upperLimit = np.max(lgTbl) * args.w
-x = np.linspace(lowerLimit,upperLimit,10000)
-F = 0
-i=1
-while F < (1 - args.p):
-    F=kde.integrate_box(lowerLimit,x[i])
-    i+=1
-minP = 1-kde.integrate_box_1d(lowerLimit,upperLimit)
-minPStr = f'< 1E{np.ceil(np.log10(abs(minP)))}'
-S = x[i]
-print(f'Score Threshold: {S}\nEst. p-val: {1-kde.integrate_box(lowerLimit,S)}')
-# If P(S > 0) < args.p, set S = 0
-if S < 0:
-    S = 0
-    args.p = 1-kde.integrate_box(lowerLimit,S)
-    if args.p <= 0:
-        args.p = 10**(np.ceil(np.log10(abs(minP))))
-    print(f'S < 0, setting S = 0\np-val: {args.p}')
-print('\nDone')
-target = Reader(args.db)
-targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
+if os.path.isdir(args.model):
+    models = [f for f in glob.iglob(f'{args.model}*mkv')]
+else:
+    models = [args.model]
+for model in models:
+    modelName = '_'.join(model.split('_')[:2])
+    lgTbl = np.loadtxt(model)
+    # Explicitly determine k from the size of the log matrix and the size of the alphabet used to generate it
+    k = int(log(lgTbl.size,len(args.a)))
+    alphabet = [letter for letter in args.a]
+    kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)]
+    probMap = {'A':.3,'T':.3,'C':.2,'G':.2}
+    probs = [probMap[letter] for letter in args.a]
+    print('\nGenerating model of score distribution')
+    randSeqs = [coreStats.dnaGen(args.w,alphabet,probs) for i in range(args.nRAND)]
+    randSeqsScore = np.array([corefunctions.score(seq,k,lgTbl,alphabet) for seq in randSeqs])
+    kde = gaussian_kde(randSeqsScore)
+    lowerLimit= np.min(lgTbl) * args.w
+    upperLimit = np.max(lgTbl) * args.w
+    x = np.linspace(lowerLimit,upperLimit,10000)
+    F = 0
+    i=1
+    while F < (1 - args.p):
+        F=kde.integrate_box(lowerLimit,x[i])
+        i+=1
+    minP = 1-kde.integrate_box_1d(lowerLimit,upperLimit)
+    minPStr = f'< 1E{np.ceil(np.log10(abs(minP)))}'
+    S = x[i]
+    print(f'Score Threshold: {S}\nEst. p-val: {1-kde.integrate_box(lowerLimit,S)}')
+    # If P(S > 0) < args.p, set S = 0
+    if S < 0:
+        S = 0
+        args.p = 1-kde.integrate_box(lowerLimit,S)
+        if args.p <= 0:
+            args.p = 10**(np.ceil(np.log10(abs(minP))))
+        print(f'S < 0, setting S = 0\np-val: {args.p}')
+    print('\nDone')
+    target = Reader(args.db)
+    targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
 
-targetMap = defaultdict(list)
-print('\nScanning database sequences')
-with pool.Pool(args.n) as multiN:
-    jobs = multiN.starmap(mainCompute,product(*[list(zip(targetHeaders,targetSeqs))]))
-    dataDict = dict(jobs)
-print('\nDone')
-with open(f'./{args.prefix}_{k}_{args.w}w_{args.s}sl_HSS.txt','w') as outfile:
-    for h,data in dataDict.items():
-        outfile.write(f'$ {h}\t{data[0]}\n')
-        outfile.write(f'Tile\tbp Range\tSequence\tLog-Likelihood\tp-val\n')
-        for string in data[1]:
-            outfile.write(string)
+    targetMap = defaultdict(list)
+    print('\nScanning database sequences')
+    with pool.Pool(args.n) as multiN:
+        jobs = multiN.starmap(mainCompute,product(*[list(zip(targetHeaders,targetSeqs))]))
+        dataDict = dict(jobs)
+    print('\nDone')
+    with open(f'./{args.prefix}_{modelName}_{k}_{args.w}w_{args.s}sl_HSS.txt','w') as outfile:
+        for h,data in dataDict.items():
+            outfile.write(f'$ {h}\t{data[0]}\n')
+            outfile.write(f'Tile\tbp Range\tSequence\tLog-Likelihood\tp-val\n')
+            for string in data[1]:
+                outfile.write(string)
+    if args.retrain:
+        with open(f'./{args.prefix}_{modelName}_{k}_{args.w}w_{args.s}sl.fa','w') as outfile:
+            for h, data in dataDict.items():
+                outfile.write(f'>{h}\n')
+                for seq in data[2]:
+                    outfile.write(f'{seq}\n')
