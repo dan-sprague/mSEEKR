@@ -18,6 +18,7 @@ parser.add_argument("--query",type=str,help='Path to fasta file or containing se
 parser.add_argument('--null', type=str,help='Path to fasta file containing sequences that compose null model (e.g. transcriptome, genome, etc.)')
 parser.add_argument('--qPrefix',type=str,help='String, Output file prefix;default=None',default='query')
 parser.add_argument('--nullPrefix',type=str,help='String, Output file prefix;default=None',default='null')
+parser.add_argument('--dir',type=str,help='Output directory',default='./markovModels/')
 parser.add_argument('-k',type=str,help='Comma delimited string of possible k-mer values',default='2,3,4')
 parser.add_argument('-a',type=str,help='String, Alphabet to generate k-mers (e.g. ATCG); default=ATCG',default='ATCG')
 
@@ -34,4 +35,4 @@ for kmer in k:
     nullMkv = corefunctions.trainModel(args.null,kmer,kmers,alphabet)
     lgTbl = corefunctions.logLTbl(queryMkv,nullMkv)
 
-    np.savetxt(f'{args.qPrefix}_{args.nullPrefix}_{kmer}.mkv',lgTbl)
+    np.savetxt(f'{args.dir}{args.qPrefix}_{args.nullPrefix}_{kmer}.mkv',lgTbl)

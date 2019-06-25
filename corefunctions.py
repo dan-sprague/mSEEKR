@@ -9,6 +9,7 @@ from itertools import groupby
 from collections import defaultdict
 import seaborn as sns
 import matplotlib.pyplot as plt
+from suffix_trees import STree
 
 def score(seq, k, likelihood,alphabet):
     tot=0
@@ -35,11 +36,11 @@ def transitionMatrix(kmers,k,alphabet):
     return states
 
 def nucContent(nullSeqs,alphabet):
-    countDict = dict(zip(alphabet,np.zeros(len(alphabet))))
-    nullSeqs = ''.join(nullSeqs)
-    for nt in nullSeqs:
-        if nt in countDict.keys():
-            countDict[nt]+=1
+    seqs = ''.join(nullSeqs)
+    seqs = seqs.upper()
+    freq = [seqs.count(nt)/len(seqs) for nt in alphabet]
+    return dict(zip(alphabet,freq))
+
 
 def trainModel(fasta,k,kmers,alphabet):
     q = BasicCounter(fasta,k=k,mean=False,std=False,log2=False,alphabet=alphabet)

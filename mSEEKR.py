@@ -14,7 +14,7 @@ import os
 import glob
 from math import log
 
-def mainCompute(data):
+def calculateSimilarity(data):
     tHead,tSeq = data
     tiles = [tSeq[i:i+args.w] for i in range(0,len(tSeq)-args.w+1,args.s)]
     tileScores = np.array([corefunctions.score(tile,k,lgTbl,alphabet) for tile in tiles])
@@ -50,12 +50,14 @@ def mainCompute(data):
     bpHits = np.sort(np.unique(np.array(bpHits).flatten()))
     return tHead,[summaryStats,strDataList,[''.join([tSeq[i] for i in bpHits])]]
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--model",type=str,help='Path to directory containing .mkv files or path to a single .mkv file;default=./',default='./markovModels/')
 parser.add_argument('--db',type=str,help='Path to fasta file with sequences to calculate similarity score')
 parser.add_argument('--nRAND',type=int,help='Int >0, Number of random sequences to generate. default=10^5',default=10**5)
 parser.add_argument('--prefix',type=str,help='String, Output file prefix;default=None')
 parser.add_argument('--retrain',help='Save unique sequence hits to fasta file for markov training',action='store_true')
+parser.add_argument('--bkg',type=str,help='Path to fasta file from which to calculate background nucleotide frequencies, if not passed default is uniform',default=None)
 parser.add_argument('-p', type=float,help='Float, Desired p-val of log-likelihood ratio score "S" to consider significant. If P(S > 0) is very small and less than this argument, set S = 0 and p = P(S>0); default=.01',default=.01)
 parser.add_argument('-w', type=int, help='Integer >= k, length of tile sizes; default=200', default=200)
 parser.add_argument('-s', type=int, help='Integer >=1, how many bp to slide tiles. Increasing this parameter decreases compute time significantly; default=20', default=20)
@@ -64,19 +66,29 @@ parser.add_argument('-n',type=int,help='Integer 1 <= n <= max(cores), Number of 
 
 
 args = parser.parse_args()
+alphabet = [letter for letter in args.a]
 
 if os.path.isdir(args.model):
     models = [f for f in glob.iglob(f'{args.model}*mkv')]
 else:
     models = [args.model]
+
+if args.bkg:
+    bkgFa = Reader(args.bkg)
+    bkgSeqs = bkgFa.get_seqs()
+    probMap = corefunctions.nucContent(bkgSeqs,args.a)
+    print(f'Background Frequencies: {probMap}')
+elif not args.bkg:
+    probMap = {'A':.25,'T':.25,'C':.25,'G':.25}
+
+
 for model in models:
-    modelName = '_'.join(model.split('_')[:2])
+    modelName = os.path.basename(model)
+    modelName = '_'.join(modelName.split('_')[:2])
     lgTbl = np.loadtxt(model)
     # Explicitly determine k from the size of the log matrix and the size of the alphabet used to generate it
     k = int(log(lgTbl.size,len(args.a)))
-    alphabet = [letter for letter in args.a]
     kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)]
-    probMap = {'A':.3,'T':.3,'C':.2,'G':.2}
     probs = [probMap[letter] for letter in args.a]
     print('\nGenerating model of score distribution')
     randSeqs = [coreStats.dnaGen(args.w,alphabet,probs) for i in range(args.nRAND)]
@@ -108,7 +120,7 @@ for model in models:
     targetMap = defaultdict(list)
     print('\nScanning database sequences')
     with pool.Pool(args.n) as multiN:
-        jobs = multiN.starmap(mainCompute,product(*[list(zip(targetHeaders,targetSeqs))]))
+        jobs = multiN.starmap(calculateSimilarity,product(*[list(zip(targetHeaders,targetSeqs))]))
         dataDict = dict(jobs)
     print('\nDone')
     with open(f'./{args.prefix}_{modelName}_{k}_{args.w}w_{args.s}sl_HSS.txt','w') as outfile:
