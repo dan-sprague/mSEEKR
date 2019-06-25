@@ -38,9 +38,7 @@ def calculateSimilarity(data):
     for i in argSortScores:
         bpHits.append(list(range((i*args.s),(i*args.s)+args.w)))
         tileScore = tileScores[i]
-        integratedP = 1-kde.integrate_box(lowerLimit,tileScore)
-        if integratedP <= 0:
-            integratedP = minPStr
+        integratedP = kde.integrate_box(tileScore,upperLimit*10)
         #integratedP = 1-testNorm.cdf(tileScore)
         str1 = f'{i}\t{i*args.s}:{(i*args.s)+args.w}\t'
         str2 = f'{tSeq[i*args.s:(i*args.s)+args.w]}\t{tileScore}\t'
@@ -102,16 +100,14 @@ for model in models:
     while F < (1 - args.p):
         F=kde.integrate_box(lowerLimit,x[i])
         i+=1
-    minP = 1-kde.integrate_box_1d(lowerLimit,upperLimit)
-    minPStr = f'< 1E{np.ceil(np.log10(abs(minP)))}'
+    #minP = 1-kde.integrate_box_1d(lowerLimit,upperLimit)
+    #minPStr = f'< 1E{np.ceil(np.log10(abs(minP)))}'
     S = x[i]
     print(f'Score Threshold: {S}\nEst. p-val: {1-kde.integrate_box(lowerLimit,S)}')
     # If P(S > 0) < args.p, set S = 0
     if S < 0:
         S = 0
-        args.p = 1-kde.integrate_box(lowerLimit,S)
-        if args.p <= 0:
-            args.p = 10**(np.ceil(np.log10(abs(minP))))
+        args.p = kde.integrate_box(S,upperLimit*10)
         print(f'S < 0, setting S = 0\np-val: {args.p}')
     print('\nDone')
     target = Reader(args.db)

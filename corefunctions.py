@@ -9,7 +9,6 @@ from itertools import groupby
 from collections import defaultdict
 import seaborn as sns
 import matplotlib.pyplot as plt
-from suffix_trees import STree
 
 def score(seq, k, likelihood,alphabet):
     tot=0
