@@ -52,7 +52,7 @@ def calculateSimilarity(data):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--model",type=str,help='Path to directory containing .mkv files or path to a single .mkv file;default=./',default='./markovModels/')
+parser.add_argument("--model",type=str,help='Path to directory containing .mkv files or path to a single .mkv file;default=./markovModels/',default='./markovModels/')
 parser.add_argument('--db',type=str,help='Path to fasta file with sequences to calculate similarity score')
 parser.add_argument('--nRAND',type=int,help='Int >0, Number of random sequences to generate. default=10^5',default=10**5)
 parser.add_argument('--prefix',type=str,help='String, Output file prefix;default=None')
@@ -62,7 +62,7 @@ parser.add_argument('-p', type=float,help='Float, Desired p-val of log-likelihoo
 parser.add_argument('-w', type=int, help='Integer >= k, length of tile sizes; default=200', default=200)
 parser.add_argument('-s', type=int, help='Integer >=1, how many bp to slide tiles. Increasing this parameter decreases compute time significantly; default=20', default=20)
 parser.add_argument('-a',type=str,help='String, Alphabet to generate k-mers (e.g. ATCG); default=ATCG',default='ATCG')
-parser.add_argument('-n',type=int,help='Integer 1 <= n <= max(cores), Number of processor cores to use; default = 1',default=1)
+parser.add_argument('-n',type=int,help='Integer 1 <= n <= max(cores), Number of processor cores to use; default = 1. This scales with the number of sequence comparisons in --db',default=1)
 
 
 args = parser.parse_args()
