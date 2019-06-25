@@ -1,7 +1,7 @@
 # Local non-linear comparison SEEKR (lncSEEKR)
 
 ## Example usage
-python lmSEEKR.py --query BCD.fa --null gencode.vM17.lncRNA_transcripts.fa --db XKA.fa -k 3 -w 200 -s 20 --prefix kcnBCD --nRAND 10000 -n 3
+python mSEEKR.py  --model ./markovModels/ --db ../markovAligner/mamXists.fa --nRAND 1000 --prefix mamxist -p .01 -w 200 -s 20 -n 7 --bkg ../standard_sequences/gencode.vM17.lncRNA_transcripts.fa
 
 Parameter explanation:<br/>
 --query: Sequences to train model on<br/>
