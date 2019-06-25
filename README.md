@@ -1,4 +1,4 @@
-# Local non-linear comparison SEEKR (lncSEEKR)
+# Local non-linear comparison SEEKR using Markov Chains (mSEEKR)
 
 ## Example usage
 python mSEEKR.py  --model ./markovModels/ --db ../markovAligner/mamXists.fa --nRAND 1000 --prefix mamxist -p .01 -w 200 -s 20 -n 7 --bkg ../standard_sequences/gencode.vM17.lncRNA_transcripts.fa
