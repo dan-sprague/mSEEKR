@@ -65,6 +65,7 @@ parser.add_argument('-n',type=int,help='Integer 1 <= n <= max(cores), Number of 
 
 args = parser.parse_args()
 alphabet = [letter for letter in args.a]
+outLog = open('./log.txt','w')
 
 if os.path.isdir(args.model):
     models = [f for f in glob.iglob(f'{args.model}*mkv')]
@@ -75,10 +76,9 @@ if args.bkg:
     bkgFa = Reader(args.bkg)
     bkgSeqs = bkgFa.get_seqs()
     probMap = corefunctions.nucContent(bkgSeqs,args.a)
-    print(f'Background Frequencies: {probMap}')
+    outLog.write(f'Background Frequencies: {probMap}')
 elif not args.bkg:
     probMap = {'A':.25,'T':.25,'C':.25,'G':.25}
-
 
 for model in models:
     modelName = os.path.basename(model)
@@ -88,7 +88,7 @@ for model in models:
     k = int(log(lgTbl.size,len(args.a)))
     kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)]
     probs = [probMap[letter] for letter in args.a]
-    print('\nGenerating model of score distribution')
+    outLog.write('\nGenerating model of score distribution')
     randSeqs = [coreStats.dnaGen(args.w,alphabet,probs) for i in range(args.nRAND)]
     randSeqsScore = np.array([corefunctions.score(seq,k,lgTbl,alphabet) for seq in randSeqs])
     kde = gaussian_kde(randSeqsScore)
@@ -103,22 +103,22 @@ for model in models:
     #minP = 1-kde.integrate_box_1d(lowerLimit,upperLimit)
     #minPStr = f'< 1E{np.ceil(np.log10(abs(minP)))}'
     S = x[i]
-    print(f'Score Threshold: {S}\nEst. p-val: {1-kde.integrate_box(lowerLimit,S)}')
+    outLog.write(f'Score Threshold: {S}\nEst. p-val: {1-kde.integrate_box(lowerLimit,S)}')
     # If P(S > 0) < args.p, set S = 0
     if S < 0:
         S = 0
         args.p = kde.integrate_box(S,upperLimit*10)
-        print(f'S < 0, setting S = 0\np-val: {args.p}')
-    print('\nDone')
+        outLog.write(f'S < 0, setting S = 0\np-val: {args.p}')
+    outLog.write('\nDone')
     target = Reader(args.db)
     targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
 
     targetMap = defaultdict(list)
-    print('\nScanning database sequences')
+    outLog.write('\nScanning database sequences')
     with pool.Pool(args.n) as multiN:
         jobs = multiN.starmap(calculateSimilarity,product(*[list(zip(targetHeaders,targetSeqs))]))
         dataDict = dict(jobs)
-    print('\nDone')
+    outLog.write('\nDone')
     with open(f'./{args.prefix}_{modelName}_{k}_{args.w}w_{args.s}sl_HSS.txt','w') as outfile:
         for h,data in dataDict.items():
             outfile.write(f'$ {h}\t{data[0]}\n')
@@ -131,3 +131,4 @@ for model in models:
                 outfile.write(f'>{h}\n')
                 for seq in data[2]:
                     outfile.write(f'{seq}\n')
+outLog.close()
