@@ -38,12 +38,12 @@ def calculateSimilarity(data):
     for i in argSortScores:
         bpHits.append(list(range((i*args.s),(i*args.s)+args.w)))
         tileScore = tileScores[i]
-        integratedP = kde.integrate_box(tileScore,upperLimit*10)
+        # integratedP = kde.integrate_box(tileScore,upperLimit*10)
         #integratedP = 1-testNorm.cdf(tileScore)
         str1 = f'{i}\t{i*args.s}:{(i*args.s)+args.w}\t'
         str2 = f'{tSeq[i*args.s:(i*args.s)+args.w]}\t{tileScore}\t'
-        str3 = f'{integratedP}\n'
-        strData = str1+str2+str3
+        # str3 = f'{integratedP}\n'
+        strData = str1+str2
         strDataList.append(strData)
     bpHits = np.sort(np.unique(np.array(bpHits).flatten()))
     return tHead,[summaryStats,strDataList,[''.join([tSeq[i] for i in bpHits])]]
