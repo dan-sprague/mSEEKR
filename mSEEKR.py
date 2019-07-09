@@ -41,7 +41,7 @@ def calculateSimilarity(data):
         # integratedP = kde.integrate_box(tileScore,upperLimit*10)
         #integratedP = 1-testNorm.cdf(tileScore)
         str1 = f'{i}\t{i*args.s}:{(i*args.s)+args.w}\t'
-        str2 = f'{tSeq[i*args.s:(i*args.s)+args.w]}\t{tileScore}\t'
+        str2 = f'{tSeq[i*args.s:(i*args.s)+args.w]}\t{tileScore}\n'
         # str3 = f'{integratedP}\n'
         strData = str1+str2
         strDataList.append(strData)

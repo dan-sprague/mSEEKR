@@ -1,0 +1,24 @@
+$ >susscrofa_xist	[0.0, 0, 0, 0.0012592065332910352]
+Tile	bp Range	Sequence	Log-Likelihood	p-val
+$ >bos_xist	[53.390362940124675, 0.0, 4, 0.0]
+Tile	bp Range	Sequence	Log-Likelihood	p-val
+135	2700:2725	CAGCCCCAGCCCCAGCCCAGCCCCA	14.079038817182665	140	2800:2825	CAGCCCCAGCCCCAGCCCAGCCCCA	14.079038817182665	139	2780:2805	CCCAGCCCCAGCCCCAGCCCCAGCC	12.616142652879672	134	2680:2705	CCCAGCCCCAGCCCCAGCCCCAGCC	12.616142652879672	$ >canis_xist	[0.0, 0.5126198697240713, 0, 0.000995504156633631]
+Tile	bp Range	Sequence	Log-Likelihood	p-val
+$ >human_xist	[0.0, 0.5126198697240713, 0, 0.0009625364643068846]
+Tile	bp Range	Sequence	Log-Likelihood	p-val
+$ >marmoset_xist	[0.0, 0.5126198697240713, 0, 0.0010714256132658972]
+Tile	bp Range	Sequence	Log-Likelihood	p-val
+$ >mouse_xist	[25.275538981486804, 0, 2, 1.1940604061067006e-10]
+Tile	bp Range	Sequence	Log-Likelihood	p-val
+143	2860:2885	CAGCCCCTGCCCCAGCCCCAGCCCC	12.637769490743402	146	2920:2945	CAGCCCCTGCCCCAGCCCCAGCCCC	12.637769490743402	$ >rabbit_xist	[0.0, 0, 0, 0.0007786966582727928]
+Tile	bp Range	Sequence	Log-Likelihood	p-val
+$ >rat_xist	[12.771288297088493, 0.0, 1, 3.8697291759870467e-07]
+Tile	bp Range	Sequence	Log-Likelihood	p-val
+147	2940:2965	GCCCCAGCCCCAGCCCCAGCCCCAG	12.771288297088493	$ >pig_xist	[0.0, 0.5126198697240713, 0, 0.0012592065332910352]
+Tile	bp Range	Sequence	Log-Likelihood	p-val
+$ >vole_microtus_rossiaemeridionalis_xist	[0.0, 0, 0, 0.0008066744630753631]
+Tile	bp Range	Sequence	Log-Likelihood	p-val
+$ >koala_Rsx	[0.0, 0, 0, 0.0015068635393327146]
+Tile	bp Range	Sequence	Log-Likelihood	p-val
+$ >opossum_rsx	[0.0, 0.5218726519490818, 0, 0.0014080078255459538]
+Tile	bp Range	Sequence	Log-Likelihood	p-val
