@@ -65,3 +65,37 @@ def plotTiles(arr,outname,S):
     plt.tight_layout()
     plt.savefig(outname,bbox_inches='tight')
     plt.clf()
+
+def HMM(S,k,alphabet,O):
+    model,null = S[0],S[1]
+    hmmDict = {}
+    kmers = [''.join(p) for p in product(alphabet,repeat=k)]
+    q = BasicCounter(model,k=k,mean=False,std=False,log2=False,alphabet=alphabet)
+    q.get_counts()
+    #Reverse length normalization of seekr
+    qUnNormCounts = q.counts.T*[len(s) for s in q.seqs]/1000
+    qCounts = np.rint(qUnNormCounts.T)
+    hmmDict['model'] = qCounts/sum(qCounts)
+
+    q = BasicCounter(null,k=k,mean=False,std=False,log2=False,alphabet=alphabet)
+    q.get_counts()
+    #Reverse length normalization of seekr
+    qUnNormCounts = q.counts.T*[len(s) for s in q.seqs]/1000
+    qCounts = np.rint(qUnNormCounts.T)
+    hmmDict['null'] = qCounts/sum(qCounts)
+
+
+    obs = [kmer[i:i+k] for i in range(len(O),len(O)-k+1)]
+    states = ('Model','Null')
+    start_p = {'Model':.1,'Null':.9}
+    trans_p = {'Model':{'Model':.8,'Null':.2},'Null':{'Model':.1,'Null':.9}}
+    emit_p = {'Model': dict(zip(kmers,hmmDict['model'])),'Null':dict(zip(kmers,hmmDict['null']))}
+    return obs,states,start_p,trans_p,emit_p
+
+def viterbi(obs,states,start_p,trans_p,emit_p):
+    return
+
+def dptable(V):
+    yield " ".join(("%12d" % i) for i in range(len(V)))
+    for state in V[0]:
+        yield "%.7s: " % state + " ".join("%.7s" % ("%f" % v[state]["prob"]) for v in V)
