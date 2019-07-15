@@ -26,7 +26,8 @@ A,E,states,pi = corefunctions.HMM(S,args.k,alphabet)
 
 with open(f'./{args.queryPrefix}_{args.modelPrefix}_{args.nullPrefix}_{args.k}.txt','w') as outfile:
     for qH,obs in zip(queryHeader,querySeq):
-        O = [obs[i:i+args.k] for i in range(0,len(obs)-args.k+1)]
+        O = [obs[i:i+args.k].upper() for i in range(0,len(obs)-args.k+1)]
+        O = [o for o in O if 'N' not in o]
         bTrack = corefunctions.viterbi(O,A,E,states,pi)
         currSeq = ''
         for o,s in zip(O,bTrack):
@@ -35,7 +36,7 @@ with open(f'./{args.queryPrefix}_{args.modelPrefix}_{args.nullPrefix}_{args.k}.t
             elif s=='Null':
                 currSeq+='0'
         outfile.write(f'$ {qH}\n')
-        outfile.write(currSeq)
+        outfile.write(currSeq+'\n')
 
 
 # import matplotlib.pyplot as plt

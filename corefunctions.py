@@ -90,7 +90,7 @@ def HMM(S,k,alphabet):
     hmmDict['null'] = np.log2(qCounts/np.sum(qCounts))
     states = ('Model','Null')
     pi = {'Model':np.log2(.5),'Null':np.log2(.5)}
-    A = {'Model':{'Model':np.log2(.95),'Null':np.log2(.05)},'Null':{'Model':np.log2(.01),'Null':np.log2(.99)}}
+    A = {'Model':{'Model':np.log2(.99),'Null':np.log2(.01)},'Null':{'Model':np.log2(.001),'Null':np.log2(.999)}}
     E = {'Model': dict(zip(kmers,hmmDict['model'])),'Null':dict(zip(kmers,hmmDict['null']))}
     return A,E,states,pi
 
