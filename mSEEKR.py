@@ -139,5 +139,6 @@ for model in models:
             dataDict = dict(jobs)
         outLog.write('\nDone')
         for h,df in dataDict.items():
-            df.to_csv(f'./{args.prefix}_{modelName}_{k}_{h}_HSS.txt',sep='\t')
+            df.index.name = f'{h} bp'
+            df.to_csv(f'./{args.prefix}_{modelName}_{k}_HSS.txt',sep='\t')
 outLog.close()
