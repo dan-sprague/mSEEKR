@@ -25,6 +25,9 @@ parser.add_argument('-a',type=str,help='String, Alphabet to generate k-mers (e.g
 args = parser.parse_args()
 k = [int(i) for i in args.k.split(',')]
 
+xistfa = Reader('../standard_sequences/mm10xist_spliced.fa')
+xist = xistfa.get_seqs()[0]
+
 newDir = f'{args.dir}{args.qPrefix}_{args.nullPrefix}/'
 if not os.path.exists(newDir):
     os.mkdir(newDir)

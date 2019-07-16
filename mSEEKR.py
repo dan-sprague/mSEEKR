@@ -37,10 +37,10 @@ class Key(object):
         return self.flag[0]
 
 ''' fastaN
-Return a list of lists separating annotated from unannotated sequence
+Return a list of lists separating HMM state labels
 Input: String
 Output: List of lists
-Output example: ['ATCG','NNNNNNNNN','AATTTTTTT','N','GCGCGC',...]
+Output example: ['---','++','------','+','-------',...]
 '''
 
 
@@ -54,14 +54,7 @@ def calculateSimilarity(data):
     O = [o for o in O if 'N' not in o]
     A,E,states,pi= hmm['A'],hmm['E'],hmm['states'],hmm['pi']
     bTrack = corefunctions.viterbi(O,A,E,states,pi)
-    currSeq = []
-    for o,s in zip(O,bTrack):
-        if s == 'Model':
-            currSeq.append('+')
-        elif s=='Null':
-            currSeq.append('-')
-    groupedHits = groupHMM(currSeq)
-
+    groupedHits = groupHMM(bTrack)
     idx = 0
     haha = []
     for i,group in enumerate(groupedHits):

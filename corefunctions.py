@@ -78,7 +78,7 @@ def HMM(S,k,alphabet):
     qCounts = np.rint(qUnNormCounts.T)
     qCounts+=1
     qCounts = np.mean(qCounts,axis=0)
-    hmmDict['model'] = np.log2(qCounts/np.sum(qCounts))
+    hmmDict['+'] = np.log2(qCounts/np.sum(qCounts))
     q = BasicCounter(null,k=k,mean=False,std=False,log2=False,alphabet=alphabet)
     q.get_counts()
     #Reverse length normalization of seekr
@@ -87,11 +87,11 @@ def HMM(S,k,alphabet):
     qCounts+=1
     qCounts = np.mean(qCounts,axis=0)
     #hmmDict['null'] = np.log2(qCounts/sum(qCounts))
-    hmmDict['null'] = np.log2(qCounts/np.sum(qCounts))
-    states = ('Model','Null')
-    pi = {'Model':np.log2(.5),'Null':np.log2(.5)}
-    A = {'Model':{'Model':np.log2(.99),'Null':np.log2(.01)},'Null':{'Model':np.log2(.001),'Null':np.log2(.999)}}
-    E = {'Model': dict(zip(kmers,hmmDict['model'])),'Null':dict(zip(kmers,hmmDict['null']))}
+    hmmDict['-'] = np.log2(qCounts/np.sum(qCounts))
+    states = ('+','-')
+    pi = {'+':np.log2(.5),'-':np.log2(.5)}
+    A = {'+':{'+':np.log2(1798/18000),'-':np.log2(2/18000)},'-':{'+':np.log2(2/18000),'-':np.log2(1798/18000)}}
+    E = {'+': dict(zip(kmers,hmmDict['+'])),'-':dict(zip(kmers,hmmDict['-']))}
     return A,E,states,pi
 
 def viterbi(O,A,E,states,pi):
