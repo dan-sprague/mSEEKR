@@ -80,9 +80,9 @@ def calculateSimilarity(data):
     df.columns = ['Sequence','Score']
     df.index.name = 'bp'
     df.sort_values(by='Score',inplace=True,ascending=False)
-    df = df[df['Score']>0]
+    df = df[df['Score']>1]
 
-    return tHead,df
+    return tHead,[df,len(tSeq)]
 
 
 parser = argparse.ArgumentParser()
@@ -132,6 +132,6 @@ for model in models:
             dataDict = dict(jobs)
         outLog.write('\nDone')
         for h,df in dataDict.items():
-            df.index.name = f'{h} bp'
-            df.to_csv(f'./{args.prefix}_{modelName}_{k}_HSS.txt',sep='\t')
+            df[0].index.name = f'bp'
+            df[0].to_csv(f'./{args.prefix}_{h[1:]}_{modelName}_{k}_{df[1]}.txt',sep='\t')
 outLog.close()

@@ -90,7 +90,7 @@ def HMM(S,k,alphabet):
     hmmDict['-'] = np.log2(qCounts/np.sum(qCounts))
     states = ('+','-')
     pi = {'+':np.log2(.5),'-':np.log2(.5)}
-    A = {'+':{'+':np.log2(1798/18000),'-':np.log2(2/18000)},'-':{'+':np.log2(2/18000),'-':np.log2(1798/18000)}}
+    A = {'+':{'+':np.log2(2998/3000),'-':np.log2(2/3000)},'-':{'+':np.log2(2/18000),'-':np.log2(17998/18000)}}
     E = {'+': dict(zip(kmers,hmmDict['+'])),'-':dict(zip(kmers,hmmDict['-']))}
     return A,E,states,pi
 
@@ -125,3 +125,29 @@ def viterbi(O,A,E,states,pi):
         prev = ukprev[n+1][prev]
     backtrack = backtrack[::-1]
     return backtrack
+
+def baumWelch(O,A,pi,states,E):
+    ai = [{}]
+    N = len(O)
+    for state in states:
+        ai[0][state] = pi[state]+E[state][O[0]]
+    for n in range(1,N):
+        ai.append({})
+        for state in states:
+            ai[n][state] = E[state][O[n]]
+            s = 0
+            for j in states:
+                s+=ai[n-1][j]+A[j][state]
+            ai[n][state]+=s
+    BT = {[{}]}
+    for state in states:
+        BT[0][state] = 1
+    backO = O[::-1]
+    for n in range(N-1,-1,-1):
+        BT.append({})
+        s = 0
+        for state in states:
+            for nextState in states:
+                s+=BT[n-1][nextState] + A[state][nextState]+E[state][backO[n-1]]
+            BT[n][state] = s
+    return ai

@@ -1,3 +1,0 @@
-
-Generating model of score distribution
-Scanning database sequences
