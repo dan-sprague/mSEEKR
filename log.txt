@@ -1,6 +1,32 @@
-Background Frequencies: {'A': 0.2751905116686095, 'T': 0.2714306211151731, 'C': 0.22710445840693597, 'G': 0.22627440880928146}
-Generating model of score distributionScore Threshold: 8.467172803046083
-Est. p-val: 0.009602438446247308
+
+Generating model of score distributionScore Threshold: 1.7234383655813303
+Est. p-val: 0.00958267117434275
+Done
+Scanning database sequences
+Done
+Generating model of score distributionScore Threshold: 0.4656176267166927
+Est. p-val: 0.0096013674553459
+Done
+Scanning database sequences
+Done
+Generating model of score distributionScore Threshold: 1.6761353665511933
+Est. p-val: 0.009696961375479818
+Done
+Scanning database sequences
+Done
+Generating model of score distributionScore Threshold: -4.351800433996004
+Est. p-val: 0.009372007016337003S < 0, setting S = 0
+p-val: 0.001981975283650663
+Done
+Scanning database sequences
+Done
+Generating model of score distributionScore Threshold: 9.107950565443389
+Est. p-val: 0.0019144690110893814
+Done
+Scanning database sequences
+Done
+Generating model of score distributionScore Threshold: 7.09382002568708
+Est. p-val: 0.0019295770777978394
 Done
 Scanning database sequences
 Done
