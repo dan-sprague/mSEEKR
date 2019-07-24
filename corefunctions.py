@@ -90,7 +90,7 @@ def HMM(S,k,alphabet):
     hmmDict['-'] = np.log2(qCounts/np.sum(qCounts))
     states = ('+','-')
     pi = {'+':np.log2(.5),'-':np.log2(.5)}
-    A = {'+':{'+':np.log2(2998/3000),'-':np.log2(2/3000)},'-':{'+':np.log2(2/18000),'-':np.log2(17998/18000)}}
+    A = {'+':{'+':np.log2(.9978),'-':np.log2(1-.9978)},'-':{'+':np.log2(1-.9997),'-':np.log2(.9997)}}
     E = {'+': dict(zip(kmers,hmmDict['+'])),'-':dict(zip(kmers,hmmDict['-']))}
     return A,E,states,pi
 
