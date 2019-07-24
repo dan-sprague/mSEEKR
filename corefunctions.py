@@ -11,7 +11,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 def score(seq, k, likelihood,alphabet):
-    tot=0
+    LLR=0
     obs = [seq[i:i+k] for i in range(len(seq)-k+1)]
     stateKmers = [''.join(p) for p in product(alphabet,repeat=k-1)]
     nextState = dict(zip(alphabet,range(len(alphabet))))
@@ -19,8 +19,8 @@ def score(seq, k, likelihood,alphabet):
     for kmer in obs:
         if ('N' not in kmer) and ('$' not in kmer):
             i, j = currState[kmer[:k-1]], nextState[kmer[-1]]
-            tot += likelihood[i, j]
-    return tot
+            LLR += likelihood[i, j]
+    return LLR
 
 def transitionMatrix(kmers,k,alphabet):
     states = np.zeros((4**(int(k)-1), 4), dtype=np.float64)
@@ -139,9 +139,9 @@ def baumWelch(O,A,pi,states,E):
             for j in states:
                 s+=ai[n-1][j]+A[j][state]
             ai[n][state]+=s
-    BT = {[{}]}
+    BT = [{}]
     for state in states:
-        BT[0][state] = 1
+        BT[0][state] = np.log2(1)
     backO = O[::-1]
     for n in range(N-1,-1,-1):
         BT.append({})
