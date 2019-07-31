@@ -80,7 +80,7 @@ def calculateSimilarity(data):
     df.columns = ['Sequence','Score']
     df.index.name = 'bp'
     df.sort_values(by='Score',inplace=True,ascending=False)
-    df = df[df['Score']>1]
+    #df = df[df['Score']>1]
 
     return tHead,[df,len(tSeq)]
 
