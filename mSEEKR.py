@@ -68,8 +68,9 @@ def calculateSimilarity(data):
     for group in hits:
         if '+' in group[1]:
             start,end = group[0][0],group[0][-1]+k+1
-            seqHitCoords.append(f'{start}:{end}')
-            seqHits.append(tSeq[start:end])
+            if end-start >= 25:
+                seqHitCoords.append(f'{start}:{end}')
+                seqHits.append(tSeq[start:end])
 
 
     seqScores = np.array([corefunctions.score(tile,k,lgTbl,alphabet) for tile in seqHits])
