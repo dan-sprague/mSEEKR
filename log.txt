@@ -1,129 +1,130 @@
 
-Generating model of score distributionScore Threshold: -52.0465522274917
-Est. p-val: 0.009250599146502059S < 0, setting S = 0
-p-val: 0.0
+Generating model of score distributionScore Threshold: -50.619548897672075
+Est. p-val: 0.009498968165341015S < 0, setting S = 0
+p-val: 1.7319479184152442e-17
 Done
 Scanning database sequences
 Done
-Generating model of score distributionScore Threshold: 4.659073997828273
-Est. p-val: -2.220446049250313e-16
-Done
-Scanning database sequences
-Done
-Generating model of score distributionScore Threshold: -29.47591190164576
+Generating model of score distributionScore Threshold: -12.014408501994922
 Est. p-val: -2.220446049250313e-16S < 0, setting S = 0
 p-val: 0.0
 Done
 Scanning database sequences
 Done
-Generating model of score distributionScore Threshold: -48.06666324693788
-Est. p-val: -2.220446049250313e-16S < 0, setting S = 0
-p-val: 0.0
-Done
-Scanning database sequences
-Done
-Generating model of score distributionScore Threshold: -26.54016486424348
-Est. p-val: -2.220446049250313e-16S < 0, setting S = 0
-p-val: 0.0
-Done
-Scanning database sequences
-Done
-Generating model of score distributionScore Threshold: -22.732529608008008
+Generating model of score distributionScore Threshold: -24.684165730487166
 Est. p-val: -4.440892098500626e-16S < 0, setting S = 0
 p-val: 0.0
 Done
 Scanning database sequences
 Done
-Generating model of score distributionScore Threshold: 10.738950647314823
+Generating model of score distributionScore Threshold: -44.29455931822554
+Est. p-val: -4.440892098500626e-16S < 0, setting S = 0
+p-val: 0.0
+Done
+Scanning database sequences
+Done
+Generating model of score distributionScore Threshold: -14.364723518371875
+Est. p-val: -4.440892098500626e-16S < 0, setting S = 0
+p-val: 0.0
+Done
+Scanning database sequences
+Done
+Generating model of score distributionScore Threshold: -23.760964068993417
+Est. p-val: -4.440892098500626e-16S < 0, setting S = 0
+p-val: 0.0
+Done
+Scanning database sequences
+Done
+Generating model of score distributionScore Threshold: 3.376983995759474
 Est. p-val: -2.220446049250313e-16
 Done
 Scanning database sequences
 Done
-Generating model of score distributionScore Threshold: 7.876644272954763
+Generating model of score distributionScore Threshold: 16.43227179530743
 Est. p-val: -2.220446049250313e-16
 Done
 Scanning database sequences
 Done
-Generating model of score distributionScore Threshold: -12.175702977590163
+Generating model of score distributionScore Threshold: -7.533817528923464
 Est. p-val: -2.220446049250313e-16S < 0, setting S = 0
 p-val: 0.0
 Done
 Scanning database sequences
 Done
-Generating model of score distributionScore Threshold: 5.51418527450403
+Generating model of score distributionScore Threshold: 3.7463178411173885
+Est. p-val: -2.220446049250313e-16
+Done
+Scanning database sequences
+Done
+Generating model of score distributionScore Threshold: 0.5316218581918974
+Est. p-val: -2.220446049250313e-16
+Done
+Scanning database sequences
+Done
+Generating model of score distributionScore Threshold: 5.016226592913199
+Est. p-val: -2.220446049250313e-16
+Done
+Scanning database sequences
+Done
+Generating model of score distributionScore Threshold: 8.961696143525614
 Est. p-val: 0.0
 Done
 Scanning database sequences
 Done
-Generating model of score distributionScore Threshold: 9.777235976049951
-Est. p-val: -2.220446049250313e-16
-Done
-Scanning database sequences
-Done
-Generating model of score distributionScore Threshold: 8.131756462594922
-Est. p-val: -2.220446049250313e-16
-Done
-Scanning database sequences
-Done
-Generating model of score distributionScore Threshold: 12.405286842975329
-Est. p-val: -2.220446049250313e-16
-Done
-Scanning database sequences
-Done
-Generating model of score distributionScore Threshold: -5.9958074469893745
+Generating model of score distributionScore Threshold: -12.625799549828571
 Est. p-val: -2.220446049250313e-16S < 0, setting S = 0
 p-val: 0.0
 Done
 Scanning database sequences
 Done
-Generating model of score distributionScore Threshold: -14.86387016913477
+Generating model of score distributionScore Threshold: -33.75634714151715
 Est. p-val: -2.220446049250313e-16S < 0, setting S = 0
 p-val: 0.0
 Done
 Scanning database sequences
 Done
-Generating model of score distributionScore Threshold: -22.74729566845963
+Generating model of score distributionScore Threshold: -23.536745466385582
 Est. p-val: -4.440892098500626e-16S < 0, setting S = 0
 p-val: 0.0
 Done
 Scanning database sequences
 Done
-Generating model of score distributionScore Threshold: -5.606451402772564
-Est. p-val: -2.220446049250313e-16S < 0, setting S = 0
+Generating model of score distributionScore Threshold: -1.3760251486573907
+Est. p-val: -4.440892098500626e-16S < 0, setting S = 0
+p-val: 2.375877272697835e-17
+Done
+Scanning database sequences
+Done
+Generating model of score distributionScore Threshold: -16.129974048150416
+Est. p-val: -4.440892098500626e-16S < 0, setting S = 0
 p-val: 0.0
 Done
 Scanning database sequences
 Done
-Generating model of score distributionScore Threshold: -13.985465523205676
-Est. p-val: -2.220446049250313e-16S < 0, setting S = 0
-p-val: 0.0
-Done
-Scanning database sequences
-Done
-Generating model of score distributionScore Threshold: 19.621052263864954
+Generating model of score distributionScore Threshold: 9.741043709327641
 Est. p-val: -2.220446049250313e-16
 Done
 Scanning database sequences
 Done
-Generating model of score distributionScore Threshold: 9.349993699220477
+Generating model of score distributionScore Threshold: 5.270329723626219
 Est. p-val: -2.220446049250313e-16
 Done
 Scanning database sequences
 Done
 Generating model of score distributionScore Threshold: -17.303609294914168
-Est. p-val: -2.220446049250313e-16S < 0, setting S = 0
+Est. p-val: -4.440892098500626e-16S < 0, setting S = 0
 p-val: 0.0
 Done
 Scanning database sequences
 Done
-Generating model of score distributionScore Threshold: -18.3988830011142
-Est. p-val: -2.220446049250313e-16S < 0, setting S = 0
-p-val: 0.0
+Generating model of score distributionScore Threshold: -2.7369735657657657
+Est. p-val: -4.440892098500626e-16S < 0, setting S = 0
+p-val: 3.3306690738754697e-19
 Done
 Scanning database sequences
 Done
-Generating model of score distributionScore Threshold: 4.149857911683853
-Est. p-val: -2.220446049250313e-16
+Generating model of score distributionScore Threshold: 12.884541765271592
+Est. p-val: 0.0
 Done
 Scanning database sequences
 Done
