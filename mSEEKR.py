@@ -53,6 +53,7 @@ def calculateSimilarity(data):
     O = [tSeq[i:i+k].upper() for i in range(0,len(tSeq)-k+1)]
     O = [o for o in O if 'N' not in o]
     A,E,states,pi= hmm['A'],hmm['E'],hmm['states'],hmm['pi']
+    A = {'+':{'+':np.log2(.999),'-':np.log2(1-.999)},'-':{'+':np.log2(1-.9999),'-':np.log2(.9999)}}
     bTrack = corefunctions.viterbi(O,A,E,states,pi)
     groupedHits = groupHMM(bTrack)
     idx = 0
@@ -71,20 +72,21 @@ def calculateSimilarity(data):
             # if end-start >= 25:
             #     seqHitCoords.append(f'{start}:{end}')
             #     seqHits.append(tSeq[start:end])
-
             seqHitCoords.append(f'{start}:{end}')
             seqHits.append(tSeq[start:end])
-    seqScores = np.array([corefunctions.score(tile,k,lgTbl,alphabet) for tile in seqHits])
+    if seqHits:
+        seqScores = np.array([corefunctions.score(tile,k,lgTbl,alphabet) for tile in seqHits])
+        dataDict = dict(zip(seqHitCoords,seqHits))
+        df = pd.DataFrame.from_dict(dataDict,orient='index')
+        df['Score'] = seqScores
+        df.columns = ['Sequence','Score']
+        df.index.name = 'bp'
+        df.sort_values(by='Score',inplace=True,ascending=False)
+        #df = df[df['Score']>1]
 
-    dataDict = dict(zip(seqHitCoords,seqHits))
-    df = pd.DataFrame.from_dict(dataDict,orient='index')
-    df['Score'] = seqScores
-    df.columns = ['Sequence','Score']
-    df.index.name = 'bp'
-    df.sort_values(by='Score',inplace=True,ascending=False)
-    #df = df[df['Score']>1]
-
-    return tHead,[df,len(tSeq)]
+        return tHead,[df,len(tSeq)]
+    else:
+        return tHead,None
 
 
 parser = argparse.ArgumentParser()
@@ -134,6 +136,7 @@ for model in models:
             dataDict = dict(jobs)
         outLog.write('\nDone')
         for h,df in dataDict.items():
-            df[0].index.name = f'bp'
-            df[0].to_csv(f'./{args.prefix}_{h[1:]}_{modelName}_{k}_{df[1]}.txt',sep='\t')
+            if df:
+                df[0].index.name = f'bp'
+                df[0].to_csv(f'./{args.prefix}_{h[1:]}_{modelName}_{k}_{df[1]}.txt',sep='\t')
 outLog.close()
