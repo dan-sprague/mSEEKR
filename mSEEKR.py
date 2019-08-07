@@ -31,7 +31,7 @@ def calculateSimilarity(data):
         sumP=0
     summaryStats = [hitSum,sumP,np.sum(tileScores>S),coreStats.tileE(tileScores,args.p,np.sum(tileScores>S))]
     argSortScores = np.argsort(tileScores)[::-1]
-    idxHit = np.nonzero(tileScores>S)
+    idxHit = np.nonzero(tileScores>0)
     argSortScores = argSortScores[np.isin(argSortScores,idxHit)]
     strDataList = []
     bpHits = []
