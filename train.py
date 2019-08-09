@@ -38,7 +38,7 @@ for k in kVals:
         queryMkv = corefunctions.trainModel(qCounts[k],k,alphabet)
         nullMkv = corefunctions.trainModel(nCounts[k],k,,alphabet)
         lgTbl = corefunctions.logLTbl(queryMkv,nullMkv)
+        np.savetxt(f'{args.dir}{args.qPrefix}_{args.nullPrefix}_{k}.mkv',lgTbl)
+
     else:
         print(f'{k}-mers missing from count file')
-
-    np.savetxt(f'{args.dir}{args.qPrefix}_{args.nullPrefix}_{kmer}.mkv',lgTbl)
