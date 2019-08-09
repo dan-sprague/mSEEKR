@@ -1,0 +1,7 @@
+
+Generating model of score distributionScore Threshold: -65.97959117061532
+Est. p-val: 0.009328349971792882S < 0, setting S = 0
+p-val: 0.0
+Done
+Scanning database sequences
+Done

@@ -29,14 +29,11 @@ kVals= [int(i) for i in args.k.split(',')]
 
 qCounts = pickle.load(open(args.query,'rb'))
 nCounts = pickle.load(open(args.null,'rb'))
-
 for k in kVals:
-    if (k in qCounts.keys()) and (k in nCounts.keys):
+    if (k in qCounts.keys()) and (k in nCounts.keys()):
         alphabet = [letter for letter in args.a]
-        print('Counting k-mers...')
-        kmers = [''.join(p) for p in itertools.product(alphabet,repeat=kmer)]
-        queryMkv = corefunctions.trainModel(qCounts[k],k,alphabet)
-        nullMkv = corefunctions.trainModel(nCounts[k],k,alphabet)
+        queryMkv = corefunctions.transitionMatrix(qCounts[k],k,alphabet)
+        nullMkv = corefunctions.transitionMatrix(nCounts[k],k,alphabet)
         lgTbl = corefunctions.logLTbl(queryMkv,nullMkv)
         np.savetxt(f'{args.dir}{args.qPrefix}_{args.nullPrefix}_{k}.mkv',lgTbl)
 

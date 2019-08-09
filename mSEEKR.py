@@ -52,7 +52,7 @@ def calculateSimilarity(data):
 parser = argparse.ArgumentParser()
 parser.add_argument("--model",type=str,help='Path to directory containing .mkv files or path to a single .mkv file;default=./markovModels/',default='./markovModels/')
 parser.add_argument('--db',type=str,help='Path to fasta file with sequences to calculate similarity score')
-parser.add_argument('--nRAND',type=int,help='Int >0, Number of random sequences to generate. default=10^5',default=10**5)
+parser.add_argument('--nRAND',type=int,help='Int >0, Number of random sequences to generate. default=10^3',default=10**3)
 parser.add_argument('--prefix',type=str,help='String, Output file prefix;default=None')
 parser.add_argument('--retrain',help='Save unique sequence hits to fasta file for markov training',action='store_true')
 parser.add_argument('--bkg',type=str,help='Path to fasta file from which to calculate background nucleotide frequencies, if not passed default is uniform',default=None)
