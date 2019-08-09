@@ -11,7 +11,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 def score(seq, k, likelihood,alphabet):
-    tot=0
+    LLR=0
     obs = [seq[i:i+k] for i in range(len(seq)-k+1)]
     stateKmers = [''.join(p) for p in product(alphabet,repeat=k-1)]
     nextState = dict(zip(alphabet,range(len(alphabet))))
@@ -19,8 +19,8 @@ def score(seq, k, likelihood,alphabet):
     for kmer in obs:
         if ('N' not in kmer) and ('$' not in kmer):
             i, j = currState[kmer[:k-1]], nextState[kmer[-1]]
-            tot += likelihood[i, j]
-    return tot
+            LLR += likelihood[i, j]
+    return LLR
 
 def transitionMatrix(kmers,k,alphabet):
     states = np.zeros((4**(int(k)-1), 4), dtype=np.float64)
@@ -41,19 +41,6 @@ def nucContent(nullSeqs,alphabet):
     freq = [seqs.count(nt)/len(seqs) for nt in alphabet]
     return dict(zip(alphabet,freq))
 
-
-def trainModel(fasta,k,kmers,alphabet):
-    q = BasicCounter(fasta,k=k,mean=False,std=False,log2=False,alphabet=alphabet)
-    q.get_counts()
-    #Reverse length normalization of seekr
-    qUnNormCounts = q.counts.T*[len(s) for s in q.seqs]/1000
-    qCounts = np.rint(qUnNormCounts.T)
-    qCounts+=1
-    qCounts = np.mean(qCounts,axis=0)
-    currKmers = dict(zip(kmers,qCounts))
-    qTransMat = transitionMatrix(currKmers,k,alphabet)
-    return qTransMat
-
 def logLTbl(q,null):
     return np.log2(q) - np.log2(null)
 
@@ -67,31 +54,18 @@ def plotTiles(arr,outname,S):
     plt.savefig(outname,bbox_inches='tight')
     plt.clf()
 
-def HMM(S,k,alphabet):
-    model,null = S[0],S[1]
+def HMM(qCounts,nCounts,k,alphabet,m,n):
+    kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)]
     hmmDict = {}
-    kmers = [''.join(p) for p in product(alphabet,repeat=k)]
-    q = BasicCounter(model,k=k,mean=False,std=False,log2=False,alphabet=alphabet)
-    q.get_counts()
-    #Reverse length normalization of seekr
-    qUnNormCounts = q.counts.T*[len(s) for s in q.seqs]/1000
-    qCounts = np.rint(qUnNormCounts.T)
-    qCounts+=1
-    qCounts = np.mean(qCounts,axis=0)
-    hmmDict['model'] = np.log2(qCounts/np.sum(qCounts))
-    q = BasicCounter(null,k=k,mean=False,std=False,log2=False,alphabet=alphabet)
-    q.get_counts()
-    #Reverse length normalization of seekr
-    qUnNormCounts = q.counts.T*[len(s) for s in q.seqs]/1000
-    qCounts = np.rint(qUnNormCounts.T)
-    qCounts+=1
-    qCounts = np.mean(qCounts,axis=0)
-    #hmmDict['null'] = np.log2(qCounts/sum(qCounts))
-    hmmDict['null'] = np.log2(qCounts/np.sum(qCounts))
-    states = ('Model','Null')
-    pi = {'Model':np.log2(.5),'Null':np.log2(.5)}
-    A = {'Model':{'Model':np.log2(.99),'Null':np.log2(.01)},'Null':{'Model':np.log2(.001),'Null':np.log2(.999)}}
-    E = {'Model': dict(zip(kmers,hmmDict['model'])),'Null':dict(zip(kmers,hmmDict['null']))}
+    countArr = np.array(list(qCounts.values()))
+    hmmDict['+'] = np.log2(countArr/np.sum(countArr))
+
+    countArr = np.array(list(nCounts.values()))
+    hmmDict['-'] = np.log2(countArr/np.sum(countArr))
+    states = ('+','-')
+    pi = {'+':np.log2(.5),'-':np.log2(.5)}
+    A = {'+':{'+':np.log2(m),'-':np.log2(1-m)},'-':{'+':np.log2(1-n),'-':np.log2(n)}}
+    E = {'+': dict(zip(kmers,hmmDict['+'])),'-':dict(zip(kmers,hmmDict['-']))}
     return A,E,states,pi
 
 def viterbi(O,A,E,states,pi):
@@ -125,3 +99,29 @@ def viterbi(O,A,E,states,pi):
         prev = ukprev[n+1][prev]
     backtrack = backtrack[::-1]
     return backtrack
+
+def baumWelch(O,A,pi,states,E):
+    ai = [{}]
+    N = len(O)
+    for state in states:
+        ai[0][state] = pi[state]+E[state][O[0]]
+    for n in range(1,N):
+        ai.append({})
+        for state in states:
+            ai[n][state] = E[state][O[n]]
+            s = 0
+            for j in states:
+                s+=ai[n-1][j]+A[j][state]
+            ai[n][state]+=s
+    BT = [{}]
+    for state in states:
+        BT[0][state] = np.log2(1)
+    backO = O[::-1]
+    for n in range(N-1,-1,-1):
+        BT.append({})
+        s = 0
+        for state in states:
+            for nextState in states:
+                s+=BT[n-1][nextState] + A[state][nextState]+E[state][backO[n-1]]
+            BT[n][state] = s
+    return ai
