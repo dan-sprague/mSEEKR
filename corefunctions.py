@@ -41,19 +41,6 @@ def nucContent(nullSeqs,alphabet):
     freq = [seqs.count(nt)/len(seqs) for nt in alphabet]
     return dict(zip(alphabet,freq))
 
-
-def trainModel(fasta,k,kmers,alphabet):
-    q = BasicCounter(fasta,k=k,mean=False,std=False,log2=False,alphabet=alphabet)
-    q.get_counts()
-    #Reverse length normalization of seekr
-    qUnNormCounts = q.counts.T*[len(s) for s in q.seqs]/1000
-    qCounts = np.rint(qUnNormCounts.T)
-    qCounts+=1
-    qCounts = np.mean(qCounts,axis=0)
-    currKmers = dict(zip(kmers,qCounts))
-    qTransMat = transitionMatrix(currKmers,k,alphabet)
-    return qTransMat
-
 def logLTbl(q,null):
     return np.log2(q) - np.log2(null)
 
@@ -67,30 +54,17 @@ def plotTiles(arr,outname,S):
     plt.savefig(outname,bbox_inches='tight')
     plt.clf()
 
-def HMM(S,k,alphabet):
-    model,null = S[0],S[1]
+def HMM(qCounts,nCounts,k,alphabet,m,n):
+    kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)]
     hmmDict = {}
-    kmers = [''.join(p) for p in product(alphabet,repeat=k)]
-    q = BasicCounter(model,k=k,mean=False,std=False,log2=False,alphabet=alphabet)
-    q.get_counts()
-    #Reverse length normalization of seekr
-    qUnNormCounts = q.counts.T*[len(s) for s in q.seqs]/1000
-    qCounts = np.rint(qUnNormCounts.T)
-    qCounts+=1
-    qCounts = np.mean(qCounts,axis=0)
-    hmmDict['+'] = np.log2(qCounts/np.sum(qCounts))
-    q = BasicCounter(null,k=k,mean=False,std=False,log2=False,alphabet=alphabet)
-    q.get_counts()
-    #Reverse length normalization of seekr
-    qUnNormCounts = q.counts.T*[len(s) for s in q.seqs]/1000
-    qCounts = np.rint(qUnNormCounts.T)
-    qCounts+=1
-    qCounts = np.mean(qCounts,axis=0)
-    #hmmDict['null'] = np.log2(qCounts/sum(qCounts))
-    hmmDict['-'] = np.log2(qCounts/np.sum(qCounts))
+    countArr = np.array(list(qCounts.values()))
+    hmmDict['+'] = np.log2(countArr/np.sum(countArr))
+
+    countArr = np.array(list(nCounts.values()))
+    hmmDict['-'] = np.log2(countArr/np.sum(countArr))
     states = ('+','-')
     pi = {'+':np.log2(.5),'-':np.log2(.5)}
-    A = {'+':{'+':np.log2(.9978),'-':np.log2(1-.9978)},'-':{'+':np.log2(1-.9997),'-':np.log2(.9997)}}
+    A = {'+':{'+':np.log2(m),'-':np.log2(1-m)},'-':{'+':np.log2(1-n),'-':np.log2(n)}}
     E = {'+': dict(zip(kmers,hmmDict['+'])),'-':dict(zip(kmers,hmmDict['-']))}
     return A,E,states,pi
 
