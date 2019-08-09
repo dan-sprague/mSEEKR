@@ -36,7 +36,7 @@ for k in kVals:
         print('Counting k-mers...')
         kmers = [''.join(p) for p in itertools.product(alphabet,repeat=kmer)]
         queryMkv = corefunctions.trainModel(qCounts[k],k,alphabet)
-        nullMkv = corefunctions.trainModel(nCounts[k],k,,alphabet)
+        nullMkv = corefunctions.trainModel(nCounts[k],k,alphabet)
         lgTbl = corefunctions.logLTbl(queryMkv,nullMkv)
         np.savetxt(f'{args.dir}{args.qPrefix}_{args.nullPrefix}_{k}.mkv',lgTbl)
 
