@@ -20,7 +20,7 @@ a = args.a.upper()
 F = Reader(args.fasta)
 fS = F.get_seqs()
 
-fString = '$'.join(fS)
+fString = '$'.join(fS).upper()
 
 with pool.Pool(args.n) as multiN:
     jobs = multiN.starmap(kmers.main,product(*[[fString],kVals,[a]]))
