@@ -1,2 +1,2 @@
-$ >Koala_Rsx	[0.0, 0, 0, 1.160475049388765e-10]
+$ >Koala_Rsx	[0.0, 0, 0, 4.8162585031263916e-12]
 Tile	bp Range	Sequence	Log-Likelihood	p-val
