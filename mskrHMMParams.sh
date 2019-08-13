@@ -1,10 +1,10 @@
 #!/bin/bash
 
-for a in 99 999 9999
+for a in 999 
 do
-  for b in 99 999 9999
+  for b in 9999
   do
-    for c in humanAE humanBCD
+    for c in humanA humanB humanD humanE
     do
       python mSEEKR.py --model ./markovModels/${a}_${b}/${c}_hg26Trscpt --db ./fastaFiles/hgkcnq1ot1.fa --prefix ${a}_${b}_kcn
       # python mSEEKR.py --model ./markovModels/${a}_${b}/mam${c}_hg26Trscpt --db ./fastaFiles/okRsx.fa --prefix ${a}_${b}

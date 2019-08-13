@@ -74,10 +74,11 @@ def calculateSimilarity(data):
             seqHitCoords.append(f'{start}:{end}')
             seqHits.append(tSeq[start:end])
     if seqHits:
-        seqScores = np.array([corefunctions.score(tile,k,lgTbl,alphabet) for tile in seqHits])
+        modScore = np.array([sum([E['+'][tile[i:i+k]] for i in range(len(tile)-k+1)])for tile in seqHits])
+        nullScore = np.array([sum([E['-'][tile[i:i+k]] for i in range(len(tile)-k+1)])for tile in seqHits])
         dataDict = dict(zip(seqHitCoords,seqHits))
         df = pd.DataFrame.from_dict(dataDict,orient='index')
-        df['Score'] = seqScores
+        df['Score'] = modScore-nullScore
         df.columns = ['Sequence','Score']
         df.index.name = 'bp'
         df.sort_values(by='Score',inplace=True,ascending=False)
