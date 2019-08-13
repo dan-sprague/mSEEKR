@@ -4,9 +4,10 @@ for a in 99 999 9999
 do
   for b in 99 999 9999
   do
-    for c in AE BCD
+    for c in humanAE humanBCD
     do
-      python mSEEKR.py --model ./markovModels/${a}_${b}/mam${c}_hg26Trscpt --db ./fastaFiles/okRsx.fa --prefix ${a}_${b}
+      python mSEEKR.py --model ./markovModels/${a}_${b}/${c}_hg26Trscpt --db ./fastaFiles/hgkcnq1ot1.fa --prefix ${a}_${b}_kcn
+      # python mSEEKR.py --model ./markovModels/${a}_${b}/mam${c}_hg26Trscpt --db ./fastaFiles/okRsx.fa --prefix ${a}_${b}
       # python mSEEKR.py --model ./markovModels/${a}_${b}/noHuman${c}_hg26Trscpt --db ./fastaFiles/mamX/human.fa --prefix ${a}_${b}
       # python mSEEKR.py --model ./markovModels/${a}_${b}/noRat${c}_hg26Trscpt --db ./fastaFiles/mamX/rat.fa --prefix ${a}_${b}
       # python mSEEKR.py --model ./markovModels/${a}_${b}/noPig${c}_hg26Trscpt --db ./fastaFiles/mamX/pig.fa --prefix ${a}_${b}
