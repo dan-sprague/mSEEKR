@@ -1,5 +1,8 @@
 #!/bin/bash
-
+python kmers.py --fasta ./fastaFiles/mamA.fa -k 2,3,4,5,6 --name mamA -n 5
+python kmers.py --fasta ./fastaFiles/mamB.fa -k 2,3,4,5,6 --name mamB -n 5
+python kmers.py --fasta ./fastaFiles/mamD.fa -k 2,3,4,5,6 --name mamD -n 5
+python kmers.py --fasta ./fastaFiles/mamE.fa -k 2,3,4,5,6 --name mamE -n 5
 python kmers.py --fasta ./fastaFiles/noHumanA.fa -k 2,3,4,5,6 --name noHumanA -n 5
 python kmers.py --fasta ./fastaFiles/noHumanB.fa -k 2,3,4,5,6 --name noHumanB -n 5
 python kmers.py --fasta ./fastaFiles/noHumanD.fa -k 2,3,4,5,6 --name noHumanD -n 5
