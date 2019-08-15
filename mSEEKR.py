@@ -16,6 +16,7 @@ from math import log
 import pickle
 import itertools
 import pandas as pd
+from operator import itemgetter
 ''' Key for itertools groupby
     Alters flag when sequence changes from annotated from unannotated or vice versa
     Input: genomic sequence
@@ -52,9 +53,16 @@ def calculateSimilarity(data):
     tHead,tSeq = data
     O = [tSeq[i:i+k].upper() for i in range(0,len(tSeq)-k+1)]
     O = [o for o in O if 'N' not in o]
+    oIdx = [i for i in range(0,len(tSeq)-k+1) if 'N' not in tSeq[i:i+k]]
+    nBP = [i for i in range(0,len(tSeq)-k+1) if 'N' in tSeq[i:i+k]]
+    nBP = list(zip(nBP,['-']*len(nBP)))
     A,E,states,pi= hmm['A'],hmm['E'],hmm['states'],hmm['pi']
     bTrack = corefunctions.viterbi(O,A,E,states,pi)
-    groupedHits = groupHMM(bTrack)
+    coordBTrack = list(zip(oIdx,bTrack))
+    mergedTrack = coordBTrack + nBP
+    mergedTrack.sort(key=itemgetter(0))
+    hmmTrack = [i[1] for i in mergedTrack]
+    groupedHits = groupHMM(hmmTrack)
     idx = 0
     haha = []
     for i,group in enumerate(groupedHits):
@@ -74,8 +82,8 @@ def calculateSimilarity(data):
             seqHitCoords.append(f'{start}:{end}')
             seqHits.append(tSeq[start:end])
     if seqHits:
-        modScore = np.array([sum([E['+'][tile[i:i+k]] for i in range(len(tile)-k+1)])for tile in seqHits])
-        nullScore = np.array([sum([E['-'][tile[i:i+k]] for i in range(len(tile)-k+1)])for tile in seqHits])
+        modScore = np.array([sum([E['+'][tile[i:i+k]] if 'N' not in tile[i:i+k] else 0 for i in range(len(tile)-k+1)])for tile in seqHits])
+        nullScore = np.array([sum([E['-'][tile[i:i+k]] if 'N' not in tile[i:i+k] else 0 for i in range(len(tile)-k+1)])for tile in seqHits])
         dataDict = dict(zip(seqHitCoords,seqHits))
         df = pd.DataFrame.from_dict(dataDict,orient='index')
         df['Score'] = modScore-nullScore
