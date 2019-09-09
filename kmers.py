@@ -4,6 +4,7 @@ import pickle
 import os
 from multiprocessing import pool
 from itertools import product
+from math import ceil
 from seekr.fasta_reader import Reader
 
 parser = argparse.ArgumentParser()
@@ -21,7 +22,9 @@ F = Reader(args.fasta)
 fS = F.get_seqs()
 
 fString = '$'.join(fS).upper()
-
+lenFString = len(fString)
+if lenFString >= 2147483647:
+    fString='$'.join(fS[::10]).upper()
 with pool.Pool(args.n) as multiN:
     jobs = multiN.starmap(kmers.main,product(*[[fString],kVals,[a]]))
     dataDict = dict(jobs)

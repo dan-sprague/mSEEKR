@@ -75,7 +75,7 @@ def calculateSimilarity(data):
     seqHitCoords = []
     for group in hits:
         if '+' in group[1]:
-            start,end = group[0][0],group[0][-1]+k+1
+            start,end = group[0][0],group[0][-1]+k
             # if end-start >= 25:
             #     seqHitCoords.append(f'{start}:{end}')
             #     seqHits.append(tSeq[start:end])
@@ -88,11 +88,13 @@ def calculateSimilarity(data):
         df = pd.DataFrame.from_dict(dataDict,orient='index')
         df['Score'] = modScore-nullScore
         df.columns = ['Sequence','Score']
-        df.index.name = 'bp'
         df.sort_values(by='Score',inplace=True,ascending=False)
-        #df = df[df['Score']>1]
-
-        return tHead,[df,len(tSeq)]
+        df = df['Score']
+        df = df[df>0]
+        if not df.empty:
+            return tHead,[df,len(tSeq)]
+        else:
+            return tHead,None
     else:
         return tHead,None
 
@@ -143,8 +145,10 @@ for model in models:
             jobs = multiN.starmap(calculateSimilarity,product(*[list(zip(targetHeaders,targetSeqs))]))
             dataDict = dict(jobs)
         outLog.write('\nDone')
-        for h,df in dataDict.items():
-            if df:
-                df[0].index.name = f'bp'
-                df[0].to_csv(f'./{args.prefix}_{h[1:]}_{modelName}_{k}_{df[1]}.txt',sep='\t')
+        with open(f'./{args.prefix}_{modelName}_{k}.txt','w') as outfile:
+            for h,df in dataDict.items():
+                if df:
+                    df[0].index.name = f'$ {h}'
+                    outfile.write(df[0].to_string())
+                    outfile.write(f'\n')
 outLog.close()
