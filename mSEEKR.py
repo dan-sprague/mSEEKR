@@ -67,6 +67,12 @@ def kmersWithAmbigIndex(tSeq,k):
     nBP = list(zip(nBP,['N']*len(nBP)))
     return O, oIdx, nBP
 
+''' LLR
+Return log-likelihood ratio between two models in HMM for + k-mers
+Input: sequnce of hits, value of k, k-mer frequencies in HMM emmission matrix
+Output: Array of scores for each hit
+'''
+
 def LLR(hits,k,E):
     arr = np.zeros(len(hits))
     for i,hit in enumerate(hits):
@@ -79,6 +85,11 @@ def LLR(hits,k,E):
         arr[i] = llr
     return arr
 
+''' calculateSimilarity
+Run several functions including viterbi algorithm, log-likelihood, and generate output dataframes
+Input: fasta file information
+Output: dataframe object
+'''
 def calculateSimilarity(data):
     tHead,tSeq = data
     O,oIdx,nBP = kmersWithAmbigIndex(tSeq,k)
@@ -120,10 +131,10 @@ def calculateSimilarity(data):
         info = list(zip(seqHits,starts,ends))
         dataDict = dict(zip(list(range(len(seqHits))),info))
         df = pd.DataFrame.from_dict(dataDict,orient='index')
-        '''
-        calculate log-likelihood ratio of k-mers in the + model vs - model
-        '''
+
+        #calculate log-likelihood ratio of k-mers in the + model vs - model
         df['Score'] = LLR(seqHits,k,E)
+
         df.columns = ['Sequence','Start','End','Score']
         df.sort_values(by='Score',inplace=True,ascending=False)
         df.reset_index(inplace=True)
