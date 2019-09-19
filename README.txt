@@ -1,10 +1,13 @@
 mSEEKR
 
+##################################
 Installation
-
+##################################
   1. Dependencies
     a. Python3.6
       check with command "python -V"
+
+      if < 3.6, easiest solution to download anaconda python3.6/3.7
     b. cython
       Try "which cython", if none
 
@@ -22,7 +25,9 @@ Installation
 
   3. Ignore warnings (unless further steps don't work)
 
+##################################
 Counting k-mers
+##################################
 
   1. Curate unique fasta files for queries and null model before hand
   2. Use the following command
@@ -43,13 +48,15 @@ Counting k-mers
 
   Outputs binary .skr (seekr) files containing count matrices to /counts/ directory
 
-
+##################################
 Training markov models
+##################################
+
   0. Count k-mers for queries and null before proceeding
   1. Run the following command
 
   python train.py --query ./counts/mouseA.skr --null ./counts/mm10Trscpts.skr -k 2,3,4 --qPrefix mouseA --nullPrefix mm10Trscpts --qT .9999 --nT .9999 --dir ./markovModels/
-  
+
   Parameters:
 
   --query : Path to query count file
@@ -84,8 +91,9 @@ Training markov models
     .
     .
 
+###################################################
 Find HMM state path through sequences of interest
-
+###################################################
   1. Run the following command
 
   python mSEEKR.py --db ./fastaFiles/mamX/mouse.fa -n 8 --prefix test --model ./markovModels/

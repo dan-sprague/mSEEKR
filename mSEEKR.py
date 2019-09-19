@@ -18,8 +18,8 @@ import itertools
 import pandas as pd
 from operator import itemgetter
 ''' Key for itertools groupby
-    Alters flag when sequence changes from annotated from unannotated or vice versa
-    Input: genomic sequence
+    Alters flag when sequence changes from one condition to another
+    Input: Sequence of characters with some alphabet and a trigger condition
     Output: flag: 0 or 1
 '''
 
@@ -38,7 +38,7 @@ class Key(object):
         return self.flag[0]
 
 ''' fastaN
-Return a list of lists separating HMM state labels
+Return a list of strings separating HMM state labels
 Input: String
 Output: List of lists
 Output example: ['---','++','------','+','-------',...]
@@ -76,9 +76,6 @@ def calculateSimilarity(data):
     for group in hits:
         if '+' in group[1]:
             start,end = group[0][0],group[0][-1]+k
-            # if end-start >= 25:
-            #     seqHitCoords.append(f'{start}:{end}')
-            #     seqHits.append(tSeq[start:end])
             seqHitCoords.append(f'{start}:{end}')
             seqHits.append(tSeq[start:end])
     if seqHits:
@@ -90,7 +87,6 @@ def calculateSimilarity(data):
         df.columns = ['Sequence','Score']
         df.sort_values(by='Score',inplace=True,ascending=False)
         df = df['Score']
-        df = df[df>0]
         if not df.empty:
             return tHead,[df,len(tSeq)]
         else:
