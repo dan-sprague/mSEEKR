@@ -194,21 +194,20 @@ for model in models:
             jobs = multiN.starmap(calculateSimilarity,product(*[list(zip(targetHeaders,targetSeqs))]))
             dataDict = dict(jobs)
         outLog.write('\nDone')
-        with open(f'./{args.prefix}_{modelName}_{k}.txt','w') as outfile:
-            if not args.wt:
-                dataFrames = pd.concat([df for df in dataDict.values() if not None])
-                dataFrames['Length'] = dataFrames['End'] - dataFrames['Start']
-                dataFrames = dataFrames[['Start','End','Length','Score','seqName','Sequence']]
-                if not args.fasta:
-                    dataFrames = dataFrames[['Start','End','Length','Score','seqName']]
-                dataFrames.sort_values(by='Score',ascending=False,inplace=True)
-                dataFrames.reset_index(inplace=True,drop=True)
-                outfile.write(dataFrames.to_string())
-            elif args.wt:
-                dataFrames = pd.concat([df for df in dataDict.values() if not None])
-                dataFrames.sort_values(by='Score',ascending=False,inplace=True)
-                dataFrames.reset_index(inplace=True,drop=True)
-                outfile.write(dataFrames.to_string())
+        if not args.wt:
+            dataFrames = pd.concat([df for df in dataDict.values() if not None])
+            dataFrames['Length'] = dataFrames['End'] - dataFrames['Start']
+            dataFrames = dataFrames[['Start','End','Length','Score','seqName','Sequence']]
+            if not args.fasta:
+                dataFrames = dataFrames[['Start','End','Length','Score','seqName']]
+            dataFrames.sort_values(by='Score',ascending=False,inplace=True)
+            dataFrames.reset_index(inplace=True,drop=True)
+            dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')
+        elif args.wt:
+            dataFrames = pd.concat([df for df in dataDict.values() if not None])
+            dataFrames.sort_values(by='Score',ascending=False,inplace=True)
+            dataFrames.reset_index(inplace=True,drop=True)
+            dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')
         # if args.fasta:
         #     with open(f'./{args.prefix}_{modelName}_{k}.fa','w') as outfasta:
         #         for h,df in dataDict.items():
