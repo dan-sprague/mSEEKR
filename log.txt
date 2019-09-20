@@ -2,15 +2,3 @@
 Generating model of score distribution
 Scanning database sequences
 Done
-Generating model of score distribution
-Scanning database sequences
-Done
-Generating model of score distribution
-Scanning database sequences
-Done
-Generating model of score distribution
-Scanning database sequences
-Done
-Generating model of score distribution
-Scanning database sequences
-Done

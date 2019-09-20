@@ -104,14 +104,10 @@ def calculateSimilarity(data):
     groupedHits = groupHMM(hmmTrack) # ['-----','++++++++++','-','++++','------------']
     idx = 0
     indexGroupHits = []
-    '''
-    Loop below formats the hmm output as such:
 
-    [([0,1,2]),'---'),([3,4],'++'),([5],'-'),...]
-
-    Grouping HMM states with their correct index in the list of k-mers
-
-    '''
+    # Loop below formats the hmm output as such:
+    # [([0,1,2]),'---'),([3,4],'++'),([5],'-'),...]
+    # Grouping HMM states with their correct index in the list of k-mers
     for i,group in enumerate(groupedHits):
         indexGroupHits.append([])
         for kmer in group:
@@ -125,22 +121,31 @@ def calculateSimilarity(data):
             start,end = group[0][0],group[0][-1]+k #convert k-mer coord to bp coord
             seqHitCoords.append(f'{start}:{end}')
             seqHits.append(tSeq[start:end])
-    if seqHits:
-        starts = [c.split(':')[0] for c in seqHitCoords]
-        ends = [c.split(':')[1] for c in seqHitCoords]
+    starts = np.array([int(c.split(':')[0]) for c in seqHitCoords])
+    ends = np.array([int(c.split(':')[1]) for c in seqHitCoords])
+    if (seqHits) and (not args.wt):
         info = list(zip(seqHits,starts,ends))
         dataDict = dict(zip(list(range(len(seqHits))),info))
         df = pd.DataFrame.from_dict(dataDict,orient='index')
-
         #calculate log-likelihood ratio of k-mers in the + model vs - model
         df['Score'] = LLR(seqHits,k,E)
-
-        df.columns = ['Sequence','Start','End','Score']
+        df['seqName'] = tHead
+        df.columns = ['Sequence','Start','End','Score','seqName']
         df.sort_values(by='Score',inplace=True,ascending=False)
         df.reset_index(inplace=True)
         fa = df['Sequence']
-        df = df[['Start','End','Score']]
-        return tHead,[df,fa]
+        df = df[['Start','End','Score','seqName','Sequence']]
+        return tHead,df
+    elif (seqHits) and (args.wt):
+        sumHits = LLR(seqHits,k,E)
+        lens = ends-starts
+        df = pd.DataFrame([np.sum(sumHits)])
+        df['totalLenHits'] = (np.sum(lens))
+        df['fracTranscriptHit'] = df['totalLenHits']/len(tSeq)
+        df['longestHit'] = np.max(lens)
+        df['seqName'] = tHead
+        df.columns = ['Score','totalLenHits','fracTranscriptHit','longestHit','seqName']
+        return tHead,df
     else:
         return tHead,None
 
@@ -152,8 +157,8 @@ parser.add_argument('--prefix',type=str,help='String, Output file prefix;default
 #parser.add_argument('--bkg',type=str,help='Path to fasta file from which to calculate background nucleotide frequencies, if not passed default is uniform',default=None)
 parser.add_argument('-a',type=str,help='String, Alphabet to generate k-mers (e.g. ATCG); default=ATCG',default='ATCG')
 parser.add_argument('-n',type=int,help='Integer 1 <= n <= max(cores), Number of processor cores to use; default = 1. This scales with the number of sequence comparisons in --db',default=1)
-parser.add_argument('--fasta',action='store_true')
-
+parser.add_argument('--fasta',action='store_true',help='FLAG: print sequence of hit, ignored if --wt is passed')
+parser.add_argument('--wt',action='store_true',help='FLAG: If passed, return total log-likelihood over all hits in a fasta entry')
 args = parser.parse_args()
 alphabet = [letter for letter in args.a]
 outLog = open('./log.txt','w')
@@ -190,18 +195,26 @@ for model in models:
             dataDict = dict(jobs)
         outLog.write('\nDone')
         with open(f'./{args.prefix}_{modelName}_{k}.txt','w') as outfile:
-            for h,df in dataDict.items():
-                if df:
-                    outfile.write(f'{h}\n')
-                    outfile.write(df[0].to_string())
-                    outfile.write(f'\n')
-
-        if args.fasta:
-            with open(f'./{args.prefix}_{modelName}_{k}.fa','w') as outfasta:
-                for h,df in dataDict.items():
-                    if df:
-                        for i,seq in enumerate(df[1]):
-                            outfasta.write(f'{h}_hit{i}\n')
-                            outfasta.write(f'{seq}\n')
+            if not args.wt:
+                dataFrames = pd.concat([df for df in dataDict.values() if not None])
+                dataFrames['Length'] = dataFrames['End'] - dataFrames['Start']
+                dataFrames = dataFrames[['Start','End','Length','Score','seqName','Sequence']]
+                if not args.fasta:
+                    dataFrames = dataFrames[['Start','End','Length','Score','seqName']]
+                dataFrames.sort_values(by='Score',ascending=False,inplace=True)
+                dataFrames.reset_index(inplace=True,drop=True)
+                outfile.write(dataFrames.to_string())
+            elif args.wt:
+                dataFrames = pd.concat([df for df in dataDict.values() if not None])
+                dataFrames.sort_values(by='Score',ascending=False,inplace=True)
+                dataFrames.reset_index(inplace=True,drop=True)
+                outfile.write(dataFrames.to_string())
+        # if args.fasta:
+        #     with open(f'./{args.prefix}_{modelName}_{k}.fa','w') as outfasta:
+        #         for h,df in dataDict.items():
+        #             if df:
+        #                 for i,seq in enumerate(df[1]):
+        #                     outfasta.write(f'{h}_hit{i}\n')
+        #                     outfasta.write(f'{seq}\n')
 
 outLog.close()
