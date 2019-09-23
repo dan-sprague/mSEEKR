@@ -62,8 +62,11 @@ Output: List of string, list of indices, list of indices
 def kmersWithAmbigIndex(tSeq,k):
     O = [tSeq[i:i+k].upper() for i in range(0,len(tSeq)-k+1)]
     O = [o for o in O if 'N' not in o]
+    # Match k-mers without ambig char to index in original string
     oIdx = [i for i in range(0,len(tSeq)-k+1) if 'N' not in tSeq[i:i+k]]
+    # Match k-mers with ambig char to index in original string
     nBP = [i for i in range(0,len(tSeq)-k+1) if 'N' in tSeq[i:i+k]]
+    # zip the indices with marker character N
     nBP = list(zip(nBP,['N']*len(nBP)))
     return O, oIdx, nBP
 
@@ -123,6 +126,8 @@ def calculateSimilarity(data):
             seqHits.append(tSeq[start:end])
     starts = np.array([int(c.split(':')[0]) for c in seqHitCoords])
     ends = np.array([int(c.split(':')[1]) for c in seqHitCoords])
+
+    # Standard output (hit by hit)
     if (seqHits) and (not args.wt):
         info = list(zip(seqHits,starts,ends))
         dataDict = dict(zip(list(range(len(seqHits))),info))
@@ -136,13 +141,15 @@ def calculateSimilarity(data):
         fa = df['Sequence']
         df = df[['Start','End','Score','seqName','Sequence']]
         return tHead,df
+
+    # Alternative output (transcript by transcript)
     elif (seqHits) and (args.wt):
         sumHits = LLR(seqHits,k,E)
-        lens = ends-starts
-        df = pd.DataFrame([np.sum(sumHits)])
-        df['totalLenHits'] = (np.sum(lens))
-        df['fracTranscriptHit'] = df['totalLenHits']/len(tSeq)
-        df['longestHit'] = np.max(lens)
+        lens = ends-starts # lengths of individual hits
+        df = pd.DataFrame([np.sum(sumHits)]) # sum of hits
+        df['totalLenHits'] = (np.sum(lens)) # sum of all hit lengths
+        df['fracTranscriptHit'] = df['totalLenHits']/len(tSeq) # fraction of transcript that is hit
+        df['longestHit'] = np.max(lens) # longest HMM hit 
         df['seqName'] = tHead
         df.columns = ['Score','totalLenHits','fracTranscriptHit','longestHit','seqName']
         return tHead,df
@@ -152,6 +159,7 @@ def calculateSimilarity(data):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model",type=str,help='Path to directory containing hmm models from train.py')
+parser.add_argument("-k",type=str,help='Comma delimited string, values of k to use')
 parser.add_argument('--db',type=str,help='Path to fasta file with sequences to calculate similarity score')
 parser.add_argument('--prefix',type=str,help='String, Output file prefix;default=None')
 #parser.add_argument('--bkg',type=str,help='Path to fasta file from which to calculate background nucleotide frequencies, if not passed default is uniform',default=None)
@@ -163,10 +171,7 @@ args = parser.parse_args()
 alphabet = [letter for letter in args.a]
 outLog = open('./log.txt','w')
 
-if os.path.isdir(args.model):
-    models = [f+'/' for f in glob.iglob(f'{args.model}*')]
-else:
-    models = [args.model]
+
 
 # if args.bkg:
 #     bkgFa = Reader(args.bkg)
@@ -176,44 +181,51 @@ else:
 # elif not args.bkg:
 #     probMap = {'A':.25,'T':.25,'C':.25,'G':.25}
 
-for model in models:
-    kVals = [f[-1] for f in glob.iglob(f'{model}*')]
-    for kVal in kVals:
-        kDir = model+kVal+'/'
-        modelName = model.split('/')[-2]
+
+#Loop over values of k
+kVals = [int(i) for i in args.k.split(',')]
+for kVal in kVals:
+    kDir = model+kVal+'/'
+    modelName = model.split('/')[-2]
+    # Check if file exists and open if so, else skip this iteration of the loop
+    try:
         hmm = pickle.load(open(kDir+'hmm.mkv','rb'))
-        # Explicitly determine k from the size of the log matrix and the size of the alphabet used to generate it
-        k = int(log(len(hmm['E']['+'].keys()),len(args.a)))
-        kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)]
-        outLog.write('\nGenerating model of score distribution')
-        target = Reader(args.db)
-        targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
-        targetMap = defaultdict(list)
-        outLog.write('\nScanning database sequences')
-        with pool.Pool(args.n) as multiN:
-            jobs = multiN.starmap(calculateSimilarity,product(*[list(zip(targetHeaders,targetSeqs))]))
-            dataDict = dict(jobs)
-        outLog.write('\nDone')
-        if not args.wt:
-            dataFrames = pd.concat([df for df in dataDict.values() if not None])
-            dataFrames['Length'] = dataFrames['End'] - dataFrames['Start']
-            dataFrames = dataFrames[['Start','End','Length','Score','seqName','Sequence']]
-            if not args.fasta:
-                dataFrames = dataFrames[['Start','End','Length','Score','seqName']]
-            dataFrames.sort_values(by='Score',ascending=False,inplace=True)
-            dataFrames.reset_index(inplace=True,drop=True)
-            dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')
-        elif args.wt:
-            dataFrames = pd.concat([df for df in dataDict.values() if not None])
-            dataFrames.sort_values(by='Score',ascending=False,inplace=True)
-            dataFrames.reset_index(inplace=True,drop=True)
-            dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')
-        # if args.fasta:
-        #     with open(f'./{args.prefix}_{modelName}_{k}.fa','w') as outfasta:
-        #         for h,df in dataDict.items():
-        #             if df:
-        #                 for i,seq in enumerate(df[1]):
-        #                     outfasta.write(f'{h}_hit{i}\n')
-        #                     outfasta.write(f'{seq}\n')
+    except:
+        print(f'Value of k={kVal} not found, skipping...')
+        continue
+    # Explicitly determine k from the size of the log matrix and the size of the alphabet used to generate it
+    k = int(log(len(hmm['E']['+'].keys()),len(args.a)))
+    kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)] # generate k-mers
+    outLog.write('\nGenerating model of score distribution')
+    target = Reader(args.db)
+    targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
+    targetMap = defaultdict(list)
+    outLog.write('\nScanning database sequences')
+    #Pool processes onto number of CPU cores specified by the user
+    with pool.Pool(args.n) as multiN:
+        jobs = multiN.starmap(calculateSimilarity,product(*[list(zip(targetHeaders,targetSeqs))]))
+        dataDict = dict(jobs)
+    outLog.write('\nDone')
+    if not args.wt:
+        dataFrames = pd.concat([df for df in dataDict.values() if not None])
+        dataFrames['Length'] = dataFrames['End'] - dataFrames['Start']
+        dataFrames = dataFrames[['Start','End','Length','Score','seqName','Sequence']]
+        if not args.fasta:
+            dataFrames = dataFrames[['Start','End','Length','Score','seqName']]
+        dataFrames.sort_values(by='Score',ascending=False,inplace=True)
+        dataFrames.reset_index(inplace=True,drop=True)
+        dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')
+    elif args.wt:
+        dataFrames = pd.concat([df for df in dataDict.values() if not None])
+        dataFrames.sort_values(by='Score',ascending=False,inplace=True)
+        dataFrames.reset_index(inplace=True,drop=True)
+        dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')
+    # if args.fasta:
+    #     with open(f'./{args.prefix}_{modelName}_{k}.fa','w') as outfasta:
+    #         for h,df in dataDict.items():
+    #             if df:
+    #                 for i,seq in enumerate(df[1]):
+    #                     outfasta.write(f'{h}_hit{i}\n')
+    #                     outfasta.write(f'{seq}\n')
 
 outLog.close()
