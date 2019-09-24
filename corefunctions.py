@@ -10,6 +10,13 @@ from collections import defaultdict
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+'''
+
+SCORE and transitionMatrix are OLD markov chain functions
+Keeping here in case it proves useful
+
+'''
+
 def score(seq, k, likelihood,alphabet):
     LLR=0
     obs = [seq[i:i+k] for i in range(len(seq)-k+1)]
@@ -35,16 +42,19 @@ def transitionMatrix(kmers,k,alphabet):
                 states[i, j] = kmers[currState+nextState] / float(tot)
     return states
 
+# calculate nucleotide content of a sequence... unused now
 def nucContent(nullSeqs,alphabet):
     seqs = ''.join(nullSeqs)
     seqs = seqs.upper()
     freq = [seqs.count(nt)/len(seqs) for nt in alphabet]
     return dict(zip(alphabet,freq))
 
+# Calculate the log2 odds table between two matrices
 def logLTbl(q,null):
     return np.log2(q) - np.log2(null)
 
 
+# Plot tiled markov chain plots... unused now
 def plotTiles(arr,outname,S):
     sns.set_context('talk')
     plt.figure(figsize=(10,6))
@@ -54,13 +64,32 @@ def plotTiles(arr,outname,S):
     plt.savefig(outname,bbox_inches='tight')
     plt.clf()
 
+'''
+HMM: Generate dictionaries containing information necessary to perform the viterbi algorithm
+
+Inputs: qCounts - query count dictionary
+        nCounts - null count dictionary
+        k - value of k
+        alphabet - alphabet (ATCG)
+        m: + to + transition probability
+        n: - to - transition probability
+Returns:    A - Dictionary, Hidden state transition matrix
+            E - Dictionary, Emission matrix, kmer counts
+            state - tuple, list of states (+,-)
+            pi - Dictionary, initial probability of being in + or -
+
+
+'''
+
 def HMM(qCounts,nCounts,k,alphabet,m,n):
     kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)]
     hmmDict = {}
     countArr = np.array(list(qCounts.values()))
+    # Convert raw counts to frequencies, then log probability
     hmmDict['+'] = np.log2(countArr/np.sum(countArr))
 
     countArr = np.array(list(nCounts.values()))
+    # Convert raw counts to frequencies, then log probability
     hmmDict['-'] = np.log2(countArr/np.sum(countArr))
     states = ('+','-')
     pi = {'+':np.log2(.5),'-':np.log2(.5)}
@@ -68,38 +97,67 @@ def HMM(qCounts,nCounts,k,alphabet,m,n):
     E = {'+': dict(zip(kmers,hmmDict['+'])),'-':dict(zip(kmers,hmmDict['-']))}
     return A,E,states,pi
 
+
+'''
+Viterbi: Calculate the most likely sequence of hidden states given observed sequence, transition matrix, and emission matrix
+
+Inputs: O - list, observed sequence of k-mers
+        A - dictionary, transition matrices of hidden states
+        E - dictionary, emission matrices of hidden states
+        states - list, hidden states (+,-)
+        m: + to + transition probability
+        n: - to - transition probability
+        pi - Dictionary, initial probability of being in + or -
+Returns:    backTrack - list, sequence of hidden states
+
+
+'''
 def viterbi(O,A,E,states,pi):
 
+    # Initialize list of dictionaries for the current step
+    # and ukprev, which tracks the state transitions that maximize the 'viterbi function'
     uk=[{}]
     ukprev = [{}]
     N = len(O)
+    # calculate initial probabilities in each state given the first kmer
     for state in states:
         uk[0][state]=pi[state]+E[state][O[0]]
-        ukprev[0][state] = None
+        ukprev[0][state] = None # previous state does not exist, set to None
+    # Loop through observed sequence
+    # For each state, calculate the cumulative probability recursively
+    # Store the state transition that maximizes this probability in ukprev for each current state
     for n in range(1,N):
         uk.append({})
         ukprev.append({})
         for state in states:
-            prevSelState = states[0]
-            currMaxProb = A[state][prevSelState] + uk[n-1][prevSelState]
-            for pState in states[1:]:
+            prevSelState = states[0] # this is just an arbitrary choice to start checking at the start of the list
+            currMaxProb = A[state][prevSelState] + uk[n-1][prevSelState] # probability function
+            for pState in states[1:]: # now check the other states...
                 currProb = A[state][pState] + uk[n-1][pState]
-                if currProb > currMaxProb:
+                if currProb > currMaxProb: # if larger then the first one we checked, we have a new winner, store and continue loop and repeat
                     currMaxProb = currProb
                     prevSelState = pState
+            # The emission probability is constant so add at the end rather than in the loop
             max_prob = currMaxProb + E[state][O[n]]
+            # save the cumalitive probability for each state
             uk[n][state] = max_prob
+            # save the previous state that maximized this probability above
             ukprev[n][state] = prevSelState
 
-    z = max(uk[-1],key=uk[-n].get)
-    prev = ukprev[-1][z]
-    backtrack = [z]
+    z = max(uk[-1],key=uk[-n].get) # retrieve the state associated with largest log probability
+    prev = ukprev[-1][z] # get the state BEFORE "z" above that maximized z
+    backtrack = [z,prev] # start our backtrack with knowns
+    # Loop through BACKWARDS, getting the previous state associated with the current max state
     for n in range(N-2,-1,-1):
         backtrack.append(ukprev[n+1][prev])
         prev = ukprev[n+1][prev]
-    backtrack = backtrack[::-1]
+    backtrack = backtrack[::-1] # reverse the order
     return backtrack
 
+'''
+incomplete baumwelch implementation
+
+'''
 def baumWelch(O,A,pi,states,E):
     ai = [{}]
     N = len(O)

@@ -149,7 +149,7 @@ def calculateSimilarity(data):
         df = pd.DataFrame([np.sum(sumHits)]) # sum of hits
         df['totalLenHits'] = (np.sum(lens)) # sum of all hit lengths
         df['fracTranscriptHit'] = df['totalLenHits']/len(tSeq) # fraction of transcript that is hit
-        df['longestHit'] = np.max(lens) # longest HMM hit 
+        df['longestHit'] = np.max(lens) # longest HMM hit
         df['seqName'] = tHead
         df.columns = ['Score','totalLenHits','fracTranscriptHit','longestHit','seqName']
         return tHead,df
@@ -172,6 +172,11 @@ alphabet = [letter for letter in args.a]
 outLog = open('./log.txt','w')
 
 
+'''
+
+Left over code from nucleotide background frequencies. May be used later
+
+'''
 
 # if args.bkg:
 #     bkgFa = Reader(args.bkg)
@@ -220,6 +225,10 @@ for kVal in kVals:
         dataFrames.sort_values(by='Score',ascending=False,inplace=True)
         dataFrames.reset_index(inplace=True,drop=True)
         dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')
+
+    '''
+    Old saving code, keeping until certain it is unnecessary 
+    '''
     # if args.fasta:
     #     with open(f'./{args.prefix}_{modelName}_{k}.fa','w') as outfasta:
     #         for h,df in dataDict.items():
