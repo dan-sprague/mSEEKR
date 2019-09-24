@@ -34,7 +34,7 @@ kVals = [int(i) for i in args.k.split(',')]
 # Else, loop
 if not args.dir.endswith('/'):
     args.dir+='/'
-newDir = f'{args.dir}{args.qPrefix}_{args.nullPrefix}/'
+newDir = f'{args.dir}{args.qPrefix}_{args.nPrefix}/'
 if not os.path.exists(newDir):
     os.mkdir(newDir)
 else:
