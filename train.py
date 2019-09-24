@@ -21,7 +21,7 @@ parser.add_argument('--null', type=str,help='Path to kmer count file that compos
 parser.add_argument('--qT',type=float,help='Probability of query to query transition',default=.999)
 parser.add_argument('--nT',type=float,help='Probability of null to null transition',default=.9999)
 parser.add_argument('--qPrefix',type=str,help='String, Output file prefix;default=None',default='query')
-parser.add_argument('--nullPrefix',type=str,help='String, Output file prefix;default=None',default='null')
+parser.add_argument('--nPrefix',type=str,help='String, Output file prefix;default=None',default='null')
 parser.add_argument('--dir',type=str,help='Output directory',default='./')
 parser.add_argument('-k',type=str,help='Comma delimited string of possible k-mer values,must be found in the k-mer count file',default='2,3,4')
 parser.add_argument('-a',type=str,help='String, Alphabet to generate k-mers (e.g. ATCG); default=ATCG',default='ATCG')
@@ -32,7 +32,8 @@ kVals = [int(i) for i in args.k.split(',')]
 # If yes, prompt if replace, else end program
 # If no, crash
 # Else, loop
-
+if not args.dir.endswith('/'):
+    args.dir+='/'
 newDir = f'{args.dir}{args.qPrefix}_{args.nullPrefix}/'
 if not os.path.exists(newDir):
     os.mkdir(newDir)
@@ -57,7 +58,7 @@ nCount = pickle.load(open(args.null,'rb'))
 
 # Loop through specified values of k
 # Check if they exist in the counts file,
-# and call corefunctions.HMM to generate the HMM matrices 
+# and call corefunctions.HMM to generate the HMM matrices
 for k in kVals:
     if (k in qCount.keys()) and (k in nCount.keys()):
         qKCount = qCount[k]
