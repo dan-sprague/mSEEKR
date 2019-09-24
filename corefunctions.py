@@ -147,9 +147,9 @@ def viterbi(O,A,E,states,pi):
     z = max(uk[-1],key=uk[-n].get) # retrieve the state associated with largest log probability
     prev = ukprev[-1][z] # get the state BEFORE "z" above that maximized z
     backtrack = [z,prev] # start our backtrack with knowns
-    # Loop through BACKWARDS, getting the previous state associated with the current max state
+    # Loop through BACKWARDS, getting the previous state that yielded the 'current' max state
     for n in range(N-2,-1,-1):
-        backtrack.append(ukprev[n+1][prev])
+        backtrack.append(ukprev[n+1][prev]) # n+1 is the "current" state as we're going backwards, ukprev[n+1][prev] returns the state that maximized 
         prev = ukprev[n+1][prev]
     backtrack = backtrack[::-1] # reverse the order
     return backtrack
