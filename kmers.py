@@ -15,7 +15,7 @@ to a binary file that countains a dictionary of dictionaries
 #Load arguments, see help= for explanation
 parser = argparse.ArgumentParser()
 parser.add_argument('--fasta', type=str,help='Path to fasta file')
-parser.add_argument('--name',type=str,help='name for count file')
+parser.add_argument('--name',type=str,help='name for count file',default='out')
 parser.add_argument('--dir',type=str,help='directory to save output',default='./')
 parser.add_argument('-k',type=str,help='Comma delimited string of possible k-mer values',default='2,3,4')
 parser.add_argument('-a',type=str,help='String, Alphabet to generate k-mers (e.g. ATCG); default=ATCG',default='ATCG')
@@ -44,6 +44,8 @@ with pool.Pool(args.n) as multiN:
     jobs = multiN.starmap(kmers.main,product(*[[fString],kVals,[a]]))
     dataDict = dict(jobs)
 
-#Save data 
+#Save data
 kDir = args.dir
+if not kDir.endswith('/'):
+    kDir+='/'
 pickle.dump(dataDict,open(f'{kDir}{args.name}.skr','wb'))

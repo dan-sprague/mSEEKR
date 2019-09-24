@@ -188,9 +188,14 @@ Left over code from nucleotide background frequencies. May be used later
 
 
 #Loop over values of k
-kVals = [int(i) for i in args.k.split(',')]
+kVals = args.k.split(',')
+model = args.model
+
+if not model.endswith('/'):
+    model +='/'
 for kVal in kVals:
     kDir = model+kVal+'/'
+    print(kDir)
     modelName = model.split('/')[-2]
     # Check if file exists and open if so, else skip this iteration of the loop
     try:
@@ -227,7 +232,7 @@ for kVal in kVals:
         dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')
 
     '''
-    Old saving code, keeping until certain it is unnecessary 
+    Old saving code, keeping until certain it is unnecessary
     '''
     # if args.fasta:
     #     with open(f'./{args.prefix}_{modelName}_{k}.fa','w') as outfasta:
