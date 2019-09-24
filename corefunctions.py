@@ -151,8 +151,8 @@ def viterbi(O,A,E,states,pi):
     for n in range(N-2,-1,-1):
         backtrack.append(ukprev[n+1][prev]) # n+1 is the "current" state as we're going backwards, ukprev[n+1][prev] returns the state that maximized
         prev = ukprev[n+1][prev]
-    backtrack = backtrack[::-1] # reverse the order
-    return backtrack
+    fwdTrack = backtrack[::-1] # reverse the order
+    return fwdTrack
 
 '''
 incomplete baumwelch implementation
@@ -186,15 +186,11 @@ def baumWelch(O,A,pi,states,E):
 
 def fwd(O,A,pi,states,E,k,alphabet):
     a = [{}]
-    naiveT = [{}]
     N = len(O)
-    kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)]
-    freqs = [np.log2(1/len(kmers))]*len(kmers)
     for state in states:
         a[0][state] = pi[state]+E[state][O[0]]
     for n in range(1,N):
         a.append({})
-        naiveT.append({})
         for state in states:
             P=[]
             naiveP = []
