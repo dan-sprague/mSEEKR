@@ -9,7 +9,7 @@ from itertools import groupby
 from collections import defaultdict
 import seaborn as sns
 import matplotlib.pyplot as plt
-
+from scipy.special import logsumexp
 '''
 
 SCORE and transitionMatrix are OLD markov chain functions
@@ -149,7 +149,7 @@ def viterbi(O,A,E,states,pi):
     backtrack = [z,prev] # start our backtrack with knowns
     # Loop through BACKWARDS, getting the previous state that yielded the 'current' max state
     for n in range(N-2,-1,-1):
-        backtrack.append(ukprev[n+1][prev]) # n+1 is the "current" state as we're going backwards, ukprev[n+1][prev] returns the state that maximized 
+        backtrack.append(ukprev[n+1][prev]) # n+1 is the "current" state as we're going backwards, ukprev[n+1][prev] returns the state that maximized
         prev = ukprev[n+1][prev]
     backtrack = backtrack[::-1] # reverse the order
     return backtrack
@@ -183,3 +183,27 @@ def baumWelch(O,A,pi,states,E):
                 s+=BT[n-1][nextState] + A[state][nextState]+E[state][backO[n-1]]
             BT[n][state] = s
     return ai
+
+def fwd(O,A,pi,states,E,k,alphabet):
+    a = [{}]
+    naiveT = [{}]
+    N = len(O)
+    kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)]
+    freqs = [np.log2(1/len(kmers))]*len(kmers)
+    for state in states:
+        a[0][state] = pi[state]+E[state][O[0]]
+    for n in range(1,N):
+        a.append({})
+        naiveT.append({})
+        for state in states:
+            P=[]
+            naiveP = []
+            for pState in states:
+                P.append(a[n-1][pState]+A[state][pState] + E[state][O[n]])
+            P = logsumexp(P)
+            a[n][state] = P
+    fwdP = []
+    for state in states:
+        fwdP.append(a[-1][state])
+    fwdP = logsumexp(fwdP)
+    return fwdP

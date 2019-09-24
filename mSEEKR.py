@@ -73,18 +73,18 @@ def kmersWithAmbigIndex(tSeq,k):
 ''' LLR
 Return log-likelihood ratio between two models in HMM for + k-mers
 Input: sequnce of hits, value of k, k-mer frequencies in HMM emmission matrix
-Output: Array of scores for each hit
+Output: Array of LLRs for each hit
 '''
 
 def LLR(hits,k,E):
     arr = np.zeros(len(hits))
     for i,hit in enumerate(hits):
-        scorePos,scoreNeg=0,0
+        LLRPos,LLRNeg=0,0
         for j in range(len(hit)-k+1):
             kmer=hit[j:j+k]
-            scorePos += E['+'][kmer]
-            scoreNeg += E['-'][kmer]
-        llr = scorePos-scoreNeg
+            LLRPos += E['+'][kmer]
+            LLRNeg += E['-'][kmer]
+        llr = LLRPos-LLRNeg
         arr[i] = llr
     return arr
 
@@ -126,20 +126,29 @@ def calculateSimilarity(data):
             seqHits.append(tSeq[start:end])
     starts = np.array([int(c.split(':')[0]) for c in seqHitCoords])
     ends = np.array([int(c.split(':')[1]) for c in seqHitCoords])
-
+    fwdPs = []
+    for hit in seqHits:
+        O = [hit[i:i+k].upper() for i in range(0,len(hit)-k+1)]
+        O = [o for o in O if 'N' not in o]
+        '''
+        forward algorithm to calculate log P(O|HMM)
+        '''
+        fP = corefunctions.fwd(O,A,pi,states,E,k,alphabet)
+        fwdPs.append(-fP) #negative log P val
     # Standard output (hit by hit)
     if (seqHits) and (not args.wt):
         info = list(zip(seqHits,starts,ends))
         dataDict = dict(zip(list(range(len(seqHits))),info))
         df = pd.DataFrame.from_dict(dataDict,orient='index')
         #calculate log-likelihood ratio of k-mers in the + model vs - model
-        df['Score'] = LLR(seqHits,k,E)
+        df['LLR'] = LLR(seqHits,k,E)
+        df['-log(fwdAlgP)'] = fwdPs
         df['seqName'] = tHead
-        df.columns = ['Sequence','Start','End','Score','seqName']
-        df.sort_values(by='Score',inplace=True,ascending=False)
+        df.columns = ['Sequence','Start','End','LLR','-log(fwdAlgP)','seqName']
+        df.sort_values(by='-log(fwdAlgP)',inplace=True,ascending=False)
         df.reset_index(inplace=True)
         fa = df['Sequence']
-        df = df[['Start','End','Score','seqName','Sequence']]
+        df = df[['Start','End','LLR','-log(fwdAlgP)','seqName','Sequence']]
         return tHead,df
 
     # Alternative output (transcript by transcript)
@@ -151,7 +160,8 @@ def calculateSimilarity(data):
         df['fracTranscriptHit'] = df['totalLenHits']/len(tSeq) # fraction of transcript that is hit
         df['longestHit'] = np.max(lens) # longest HMM hit
         df['seqName'] = tHead
-        df.columns = ['Score','totalLenHits','fracTranscriptHit','longestHit','seqName']
+        df['sumFwdAlgLogP'] = (np.sum(fwdPs))
+        df.columns = ['sumLLR','totalLenHits','fracTranscriptHit','longestHit','seqName','sumFwdAlgLogP']
         return tHead,df
     else:
         return tHead,None
@@ -171,22 +181,6 @@ args = parser.parse_args()
 alphabet = [letter for letter in args.a]
 outLog = open('./log.txt','w')
 
-
-'''
-
-Left over code from nucleotide background frequencies. May be used later
-
-'''
-
-# if args.bkg:
-#     bkgFa = Reader(args.bkg)
-#     bkgSeqs = bkgFa.get_seqs()
-#     probMap = corefunctions.nucContent(bkgSeqs,args.a)
-#     outLog.write(f'Background Frequencies: {probMap}')
-# elif not args.bkg:
-#     probMap = {'A':.25,'T':.25,'C':.25,'G':.25}
-
-
 #Loop over values of k
 kVals = args.k.split(',')
 model = args.model
@@ -195,7 +189,6 @@ if not model.endswith('/'):
     model +='/'
 for kVal in kVals:
     kDir = model+kVal+'/'
-    print(kDir)
     modelName = model.split('/')[-2]
     # Check if file exists and open if so, else skip this iteration of the loop
     try:
@@ -206,7 +199,7 @@ for kVal in kVals:
     # Explicitly determine k from the size of the log matrix and the size of the alphabet used to generate it
     k = int(log(len(hmm['E']['+'].keys()),len(args.a)))
     kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)] # generate k-mers
-    outLog.write('\nGenerating model of score distribution')
+    outLog.write('\nGenerating model of LLR distribution')
     target = Reader(args.db)
     targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
     targetMap = defaultdict(list)
@@ -216,30 +209,22 @@ for kVal in kVals:
         jobs = multiN.starmap(calculateSimilarity,product(*[list(zip(targetHeaders,targetSeqs))]))
         dataDict = dict(jobs)
     outLog.write('\nDone')
+    #Check if no hits were found
+    # if not all(v == None for v in dataDict.values()):
     if not args.wt:
         dataFrames = pd.concat([df for df in dataDict.values() if not None])
         dataFrames['Length'] = dataFrames['End'] - dataFrames['Start']
-        dataFrames = dataFrames[['Start','End','Length','Score','seqName','Sequence']]
+        dataFrames = dataFrames[['Start','End','Length','-log(fwdAlgP)','LLR','seqName','Sequence']]
         if not args.fasta:
-            dataFrames = dataFrames[['Start','End','Length','Score','seqName']]
-        dataFrames.sort_values(by='Score',ascending=False,inplace=True)
+            dataFrames = dataFrames[['Start','End','Length','-log(fwdAlgP)','LLR','seqName']]
+        dataFrames.sort_values(by='-log(fwdAlgP)',ascending=False,inplace=True)
         dataFrames.reset_index(inplace=True,drop=True)
         dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')
     elif args.wt:
         dataFrames = pd.concat([df for df in dataDict.values() if not None])
-        dataFrames.sort_values(by='Score',ascending=False,inplace=True)
+        dataFrames = dataFrames[['seqName','sumFwdAlgLogP','sumLLR','totalLenHits','fracTranscriptHit','longestHit']]
+        dataFrames.sort_values(by='sumFwdAlgLogP',ascending=False,inplace=True)
         dataFrames.reset_index(inplace=True,drop=True)
         dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')
-
-    '''
-    Old saving code, keeping until certain it is unnecessary
-    '''
-    # if args.fasta:
-    #     with open(f'./{args.prefix}_{modelName}_{k}.fa','w') as outfasta:
-    #         for h,df in dataDict.items():
-    #             if df:
-    #                 for i,seq in enumerate(df[1]):
-    #                     outfasta.write(f'{h}_hit{i}\n')
-    #                     outfasta.write(f'{seq}\n')
 
 outLog.close()
