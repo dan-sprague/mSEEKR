@@ -1,0 +1,7 @@
+*.txt
+!README.txt
+
+*.so
+*.c
+
+
