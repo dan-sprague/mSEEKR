@@ -183,6 +183,7 @@ outLog = open('./log.txt','w')
 
 #Loop over values of k
 kVals = args.k.split(',')
+args.a = args.a.upper()
 model = args.model
 
 if not model.endswith('/'):
