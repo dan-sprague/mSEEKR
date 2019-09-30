@@ -1,9 +1,9 @@
 #!/bin/bash
-python kmers.py --fasta ./fastaFiles/mouseA.fa -k 2,3,4,5,6 --name mouseA -n 5
-python kmers.py --fasta ./fastaFiles/mouseB.fa -k 2,3,4,5,6 --name mouseB -n 5
-python kmers.py --fasta ./fastaFiles/mouseD.fa -k 2,3,4,5,6 --name mouseD -n 5
-python kmers.py --fasta ./fastaFiles/mouseE.fa -k 2,3,4,5,6 --name mouseE -n 5
-python kmers.py --fasta ../mm10Transcriptome/mm10transcripts.fa -k 2,3,4,5,6 --name mm10Trscpts -n 5
+python kmers.py --fasta ./fastaFiles/noHumanA.fa -k 2,3,4,5,6 --name A -n 5
+python kmers.py --fasta ./fastaFiles/noHumanB.fa -k 2,3,4,5,6 --name B -n 5
+python kmers.py --fasta ./fastaFiles/noHumanD.fa -k 2,3,4,5,6 --name D -n 5
+python kmers.py --fasta ./fastaFiles/noHumanE.fa -k 2,3,4,5,6 --name E -n 5
+#python kmers.py --fasta /Users/dan/Documents/Lab/hgTranscriptome/hg26Transcripts.fa -k 2,3,4,5,6 --name hgT -n 5 --dir ./counts/
 # python kmers.py --fasta ./fastaFiles/noRatAE.fa -k 2,3,4,5,6 --name noRatAE -n 4
 # python kmers.py --fasta ./fastaFiles/noRatBCD.fa -k 2,3,4,5,6 --name noRatBCD -n 4
 # python kmers.py --fasta ./fastaFiles/noDogBCD.fa -k 2,3,4,5,6 --name noDogBCD -n 4

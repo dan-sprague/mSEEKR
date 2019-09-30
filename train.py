@@ -40,7 +40,7 @@ if not os.path.exists(newDir):
 else:
     flag = True
     while flag:
-        usrIN = input('Directory exists, continue? y/n: ').strip().lower()
+        usrIN = input(f'Directory {newDir} exists, continue? y/n: ').strip().lower()
         if usrIN == 'y':
             flag = False
         elif usrIN == 'n':

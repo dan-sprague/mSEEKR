@@ -1,2 +1,0 @@
-	seqName	sumFwdLLR	sumLLR	totalLenHits	fracTranscriptHit	longestHit
-0	>human_xist	2615.596131492928	377.02196591177267	6052	0.31398184176394295	4837

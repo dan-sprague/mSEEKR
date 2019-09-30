@@ -141,14 +141,14 @@ def calculateSimilarity(data):
         dataDict = dict(zip(list(range(len(seqHits))),info))
         df = pd.DataFrame.from_dict(dataDict,orient='index')
         #calculate log-likelihood ratio of k-mers in the + model vs - model
-        df['mcLLR'] = LLR(seqHits,k,E)
+        df['kmerLLR'] = LLR(seqHits,k,E)
         df['fwdLLR'] = fwdPs
         df['seqName'] = tHead
-        df.columns = ['Sequence','Start','End','mcLLR','fwdLLR','seqName']
+        df.columns = ['Sequence','Start','End','kmerLLR','fwdLLR','seqName']
         df.sort_values(by='fwdLLR',inplace=True,ascending=False)
         df.reset_index(inplace=True)
         fa = df['Sequence']
-        df = df[['Start','End','mcLLR','fwdLLR','seqName','Sequence']]
+        df = df[['Start','End','kmerLLR','fwdLLR','seqName','Sequence']]
         return tHead,df
 
     # Alternative output (transcript by transcript)
@@ -214,9 +214,9 @@ for kVal in kVals:
     if not args.wt:
         dataFrames = pd.concat([df for df in dataDict.values() if not None])
         dataFrames['Length'] = dataFrames['End'] - dataFrames['Start']
-        dataFrames = dataFrames[['Start','End','Length','fwdLLR','mcLLR','seqName','Sequence']]
+        dataFrames = dataFrames[['Start','End','Length','fwdLLR','kmerLLR','seqName','Sequence']]
         if not args.fasta:
-            dataFrames = dataFrames[['Start','End','Length','fwdLLR','mcLLR','seqName']]
+            dataFrames = dataFrames[['Start','End','Length','fwdLLR','kmerLLR','seqName']]
         dataFrames.sort_values(by='fwdLLR',ascending=False,inplace=True)
         dataFrames.reset_index(inplace=True,drop=True)
         dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')

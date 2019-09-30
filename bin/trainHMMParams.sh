@@ -3,9 +3,9 @@ for a in .99 .999 .9999
 do
   for b in .99 .999 .9999
   do
-    for c in hgD
+    for c in A B D E
       do
-      python train.py --query ./counts/${c}.skr --null ./counts/hgT.skr -k 2,3,4,5,6 --qPrefix ${c} --nullPrefix hgT --qT $a --nT $b --dir ./markovModels/${a:1}_${b:1}
+      python train.py --query ./counts/${c}.skr --null ./counts/hgT.skr -k 2,3,4,5,6 --qPrefix ${a:1}_${b:1}_${c} --nPrefix hgT --qT ${a} --nT ${b} --dir ./markovModels/
     done
   done
 done
