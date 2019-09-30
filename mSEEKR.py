@@ -134,21 +134,21 @@ def calculateSimilarity(data):
         forward algorithm to calculate log P(O|HMM)
         '''
         fP = corefunctions.fwd(O,A,pi,states,E,k,alphabet)
-        fwdPs.append(-fP) #negative log P val
+        fwdPs.append(fP) #negative log P val
     # Standard output (hit by hit)
     if (seqHits) and (not args.wt):
         info = list(zip(seqHits,starts,ends))
         dataDict = dict(zip(list(range(len(seqHits))),info))
         df = pd.DataFrame.from_dict(dataDict,orient='index')
         #calculate log-likelihood ratio of k-mers in the + model vs - model
-        df['LLR'] = LLR(seqHits,k,E)
-        df['-log(fwdAlgP)'] = fwdPs
+        df['mcLLR'] = LLR(seqHits,k,E)
+        df['fwdLLR'] = fwdPs
         df['seqName'] = tHead
-        df.columns = ['Sequence','Start','End','LLR','-log(fwdAlgP)','seqName']
-        df.sort_values(by='-log(fwdAlgP)',inplace=True,ascending=False)
+        df.columns = ['Sequence','Start','End','mcLLR','fwdLLR','seqName']
+        df.sort_values(by='fwdLLR',inplace=True,ascending=False)
         df.reset_index(inplace=True)
         fa = df['Sequence']
-        df = df[['Start','End','LLR','-log(fwdAlgP)','seqName','Sequence']]
+        df = df[['Start','End','mcLLR','fwdLLR','seqName','Sequence']]
         return tHead,df
 
     # Alternative output (transcript by transcript)
@@ -161,7 +161,7 @@ def calculateSimilarity(data):
         df['longestHit'] = np.max(lens) # longest HMM hit
         df['seqName'] = tHead
         df['sumFwdAlgLogP'] = (np.sum(fwdPs))
-        df.columns = ['sumLLR','totalLenHits','fracTranscriptHit','longestHit','seqName','sumFwdAlgLogP']
+        df.columns = ['sumLLR','totalLenHits','fracTranscriptHit','longestHit','seqName','sumFwdLLR']
         return tHead,df
     else:
         return tHead,None
@@ -214,16 +214,16 @@ for kVal in kVals:
     if not args.wt:
         dataFrames = pd.concat([df for df in dataDict.values() if not None])
         dataFrames['Length'] = dataFrames['End'] - dataFrames['Start']
-        dataFrames = dataFrames[['Start','End','Length','-log(fwdAlgP)','LLR','seqName','Sequence']]
+        dataFrames = dataFrames[['Start','End','Length','fwdLLR','mcLLR','seqName','Sequence']]
         if not args.fasta:
-            dataFrames = dataFrames[['Start','End','Length','-log(fwdAlgP)','LLR','seqName']]
-        dataFrames.sort_values(by='-log(fwdAlgP)',ascending=False,inplace=True)
+            dataFrames = dataFrames[['Start','End','Length','fwdLLR','mcLLR','seqName']]
+        dataFrames.sort_values(by='fwdLLR',ascending=False,inplace=True)
         dataFrames.reset_index(inplace=True,drop=True)
         dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')
     elif args.wt:
         dataFrames = pd.concat([df for df in dataDict.values() if not None])
-        dataFrames = dataFrames[['seqName','sumFwdAlgLogP','sumLLR','totalLenHits','fracTranscriptHit','longestHit']]
-        dataFrames.sort_values(by='sumFwdAlgLogP',ascending=False,inplace=True)
+        dataFrames = dataFrames[['seqName','sumFwdLLR','sumLLR','totalLenHits','fracTranscriptHit','longestHit']]
+        dataFrames.sort_values(by='sumFwdLLR',ascending=False,inplace=True)
         dataFrames.reset_index(inplace=True,drop=True)
         dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')
 
