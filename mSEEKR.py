@@ -1,25 +1,18 @@
 import corefunctions
-import coreStats
 import argparse
-import itertools
+from itertools import product
 import numpy as np
 from seekr.fasta_reader import Reader
-from scipy.stats import norm
 from collections import defaultdict
 from multiprocessing import pool
-from scipy.stats import gaussian_kde
-from itertools import product
 import sys
 import os
-import glob
-from math import log
 import pickle
-import itertools
+from math import log
 import pandas as pd
 from operator import itemgetter
 
-
-''' calculateSimilarity
+''' hmmCalc
 Run several functions including viterbi algorithm, log-likelihood, and generate output dataframes
 Input: fasta file information
 Output: dataframe object
@@ -82,7 +75,7 @@ for kVal in kVals:
         continue
     # Explicitly determine k from the size of the log matrix and the size of the alphabet used to generate it
     k = int(log(len(hmm['E']['+'].keys()),len(args.a)))
-    kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)] # generate k-mers
+    kmers = [''.join(p) for p in product(alphabet,repeat=k)] # generate k-mers
     target = Reader(args.db)
     targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
     targetMap = defaultdict(list)

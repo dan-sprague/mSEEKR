@@ -1,16 +1,7 @@
 import numpy as np
-import itertools
 from itertools import product
-from seekr.kmer_counts import BasicCounter
-from seekr.fasta_reader import Reader
-from tqdm import tqdm as tqdm
-from seekr.fasta_reader import Reader
 from itertools import groupby
-from collections import defaultdict
-import seaborn as sns
-import matplotlib.pyplot as plt
 from scipy.special import logsumexp
-from operator import itemgetter
 import pandas as pd
 
 
@@ -46,7 +37,7 @@ Output: List of lists
 Output example: ['---','++','------','+','-------',...]
 '''
 def groupHMM(seq):
-    return [''.join(list(g)) for k,g in itertools.groupby(seq,key=Key())]
+    return [''.join(list(g)) for k,g in groupby(seq,key=Key())]
 
 ''' kmersWithAmbigIndex
 Return list of kmers, indices of k-mers without ambiguity, and indices of those
@@ -150,7 +141,7 @@ def formatHits(groupedHits,k,tSeq):
 
 def transitionMatrix(kmers,k,alphabet):
     states = np.zeros((4**(int(k)-1), 4), dtype=np.float64)
-    stateKmers = [''.join(p) for p in itertools.product(alphabet,repeat=k-1)]
+    stateKmers = [''.join(p) for p in product(alphabet,repeat=k-1)]
     for i, currState in enumerate(stateKmers):
         tot = 0
         for j, nextState in enumerate(alphabet):
@@ -190,7 +181,7 @@ Returns:    A - Dictionary, Hidden state transition matrix
 '''
 
 def HMM(qCounts,nCounts,k,alphabet,m,n):
-    kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)]
+    kmers = [''.join(p) for p in product(alphabet,repeat=k)]
     hmmDict = {}
     countArr = np.array(list(qCounts.values()))
     # Convert raw counts to frequencies, then log probability
@@ -295,7 +286,7 @@ def fwd(O,A,pi,states,E,k,alphabet):
     a = [{}]
     naiveT = [{}]
     N = len(O)
-    kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)]
+    kmers = [''.join(p) for p in product(alphabet,repeat=k)]
     freqs = [np.log2(1/len(kmers))]*len(kmers)
     naiveA = {'+':{'+':np.log2(.5),'-':np.log2(.5)},'-':{'+':np.log2(.5),'-':np.log2(.5)}}
     naiveE = {'+': dict(zip(kmers,freqs)),'-':dict(zip(kmers,freqs))}
