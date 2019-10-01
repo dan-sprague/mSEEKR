@@ -55,7 +55,7 @@ Input: string
 Output: List of string, list of indices, list of indices
 '''
 
-def hitOutput(seqHits,starts,ends,k,E):
+def hitOutput(seqHits,starts,ends,k,E,fwdPs,tHead):
     info = list(zip(seqHits,starts,ends))
     dataDict = dict(zip(list(range(len(seqHits))),info))
     df = pd.DataFrame.from_dict(dataDict,orient='index')
@@ -68,6 +68,20 @@ def hitOutput(seqHits,starts,ends,k,E):
     df.reset_index(inplace=True)
     fa = df['Sequence']
     df = df[['Start','End','kmerLLR','fwdLLR','seqName','Sequence']]
+
+    return df
+
+def transcriptOutput(seqHits,starts,ends,k,E,fwdPs,tHead):
+
+    sumHits = corefunctions.LLR(seqHits,k,E)
+    lens = ends-starts # lengths of individual hits
+    df = pd.DataFrame([np.sum(sumHits)]) # sum of hits
+    df['totalLenHits'] = (np.sum(lens)) # sum of all hit lengths
+    df['fracTranscriptHit'] = df['totalLenHits']/len(tSeq) # fraction of transcript that is hit
+    df['longestHit'] = np.max(lens) # longest HMM hit
+    df['seqName'] = tHead
+    df['sumFwdAlgLogP'] = (np.sum(fwdPs))
+    df.columns = ['sumLLR','totalLenHits','fracTranscriptHit','longestHit','seqName','sumFwdLLR']
 
     return df
 def kmersWithAmbigIndex(tSeq,k):

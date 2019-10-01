@@ -35,35 +35,18 @@ def hmmCalc(data):
     mergedTrack.sort(key=itemgetter(0)) # sort master list by index
     hmmTrack = [i[1] for i in mergedTrack] # fetch just state label from mergedTrack ['-','+',...,'+']
     groupedHits = corefunctions.groupHMM(hmmTrack) # ['-----','++++++++++','-','++++','------------']
+
+    # Return sequences of HMM hits, and their start and end locations in the original sequence
     seqHits,starts,ends = corefunctions.formatHits(groupedHits)
 
     fwdPs = corefunctions.getFwd(seqHits)
     if (seqHits) and (not args.wt):
-        info = list(zip(seqHits,starts,ends))
-        dataDict = dict(zip(list(range(len(seqHits))),info))
-        df = pd.DataFrame.from_dict(dataDict,orient='index')
-        #calculate log-likelihood ratio of k-mers in the + model vs - model
-        df['kmerLLR'] = corefunctions.LLR(seqHits,k,E)
-        df['fwdLLR'] = fwdPs
-        df['seqName'] = tHead
-        df.columns = ['Sequence','Start','End','kmerLLR','fwdLLR','seqName']
-        df.sort_values(by='fwdLLR',inplace=True,ascending=False)
-        df.reset_index(inplace=True)
-        fa = df['Sequence']
-        df = df[['Start','End','kmerLLR','fwdLLR','seqName','Sequence']]
+        df = corefunctions.hitOutput(seqHits,starts,ends,k,E,fwdPs,tHead)
         return tHead,df
 
     # Alternative output (transcript by transcript)
     elif (seqHits) and (args.wt):
-        sumHits = corefunctions.LLR(seqHits,k,E)
-        lens = ends-starts # lengths of individual hits
-        df = pd.DataFrame([np.sum(sumHits)]) # sum of hits
-        df['totalLenHits'] = (np.sum(lens)) # sum of all hit lengths
-        df['fracTranscriptHit'] = df['totalLenHits']/len(tSeq) # fraction of transcript that is hit
-        df['longestHit'] = np.max(lens) # longest HMM hit
-        df['seqName'] = tHead
-        df['sumFwdAlgLogP'] = (np.sum(fwdPs))
-        df.columns = ['sumLLR','totalLenHits','fracTranscriptHit','longestHit','seqName','sumFwdLLR']
+        df = corefunctions.transcriptOutput(seqHits,starts,ends,k,E,fwdPs,tHead)
         return tHead,df
     else:
         return tHead,None
