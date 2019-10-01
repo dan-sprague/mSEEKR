@@ -37,16 +37,16 @@ def hmmCalc(data):
     groupedHits = corefunctions.groupHMM(hmmTrack) # ['-----','++++++++++','-','++++','------------']
 
     # Return sequences of HMM hits, and their start and end locations in the original sequence
-    seqHits,starts,ends = corefunctions.formatHits(groupedHits)
+    seqHits,starts,ends = corefunctions.formatHits(groupedHits,k,tSeq)
 
-    fwdPs = corefunctions.getFwd(seqHits)
+    fwdPs = corefunctions.getFwd(seqHits,A,pi,states,E,k,alphabet)
     if (seqHits) and (not args.wt):
-        df = corefunctions.hitOutput(seqHits,starts,ends,k,E,fwdPs,tHead)
+        df = corefunctions.hitOutput(seqHits,starts,ends,k,E,fwdPs,tHead,tSeq)
         return tHead,df
 
     # Alternative output (transcript by transcript)
     elif (seqHits) and (args.wt):
-        df = corefunctions.transcriptOutput(seqHits,starts,ends,k,E,fwdPs,tHead)
+        df = corefunctions.transcriptOutput(seqHits,starts,ends,k,E,fwdPs,tHead,tSeq)
         return tHead,df
     else:
         return tHead,None

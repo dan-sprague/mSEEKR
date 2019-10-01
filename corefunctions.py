@@ -11,7 +11,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy.special import logsumexp
 from operator import itemgetter
-
+import pandas as pd
 
 
 ''' Key for itertools groupby
@@ -55,12 +55,12 @@ Input: string
 Output: List of string, list of indices, list of indices
 '''
 
-def hitOutput(seqHits,starts,ends,k,E,fwdPs,tHead):
+def hitOutput(seqHits,starts,ends,k,E,fwdPs,tHead,tSeq):
     info = list(zip(seqHits,starts,ends))
     dataDict = dict(zip(list(range(len(seqHits))),info))
     df = pd.DataFrame.from_dict(dataDict,orient='index')
     #calculate log-likelihood ratio of k-mers in the + model vs - model
-    df['kmerLLR'] = corefunctions.LLR(seqHits,k,E)
+    df['kmerLLR'] = LLR(seqHits,k,E)
     df['fwdLLR'] = fwdPs
     df['seqName'] = tHead
     df.columns = ['Sequence','Start','End','kmerLLR','fwdLLR','seqName']
@@ -71,9 +71,9 @@ def hitOutput(seqHits,starts,ends,k,E,fwdPs,tHead):
 
     return df
 
-def transcriptOutput(seqHits,starts,ends,k,E,fwdPs,tHead):
+def transcriptOutput(seqHits,starts,ends,k,E,fwdPs,tHead,tSeq):
 
-    sumHits = corefunctions.LLR(seqHits,k,E)
+    sumHits = LLR(seqHits,k,E)
     lens = ends-starts # lengths of individual hits
     df = pd.DataFrame([np.sum(sumHits)]) # sum of hits
     df['totalLenHits'] = (np.sum(lens)) # sum of all hit lengths
@@ -121,11 +121,11 @@ def getFwd(seqHits,A,pi,states,E,k,alphabet):
         '''
         forward algorithm to calculate log P(O|HMM)
         '''
-        fP = corefunctions.fwd(O,A,pi,states,E,k,alphabet)
+        fP = fwd(O,A,pi,states,E,k,alphabet)
         fwdPs.append(fP)
     return fwdPs
 
-def formatHits(hits):
+def formatHits(groupedHits,k,tSeq):
     idx = 0
     indexGroupHits = []
     # Loop below formats the hmm output as such:
