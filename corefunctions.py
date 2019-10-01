@@ -54,6 +54,22 @@ with ambiguity
 Input: string
 Output: List of string, list of indices, list of indices
 '''
+
+def hitOutput(seqHits,starts,ends,k,E):
+    info = list(zip(seqHits,starts,ends))
+    dataDict = dict(zip(list(range(len(seqHits))),info))
+    df = pd.DataFrame.from_dict(dataDict,orient='index')
+    #calculate log-likelihood ratio of k-mers in the + model vs - model
+    df['kmerLLR'] = corefunctions.LLR(seqHits,k,E)
+    df['fwdLLR'] = fwdPs
+    df['seqName'] = tHead
+    df.columns = ['Sequence','Start','End','kmerLLR','fwdLLR','seqName']
+    df.sort_values(by='fwdLLR',inplace=True,ascending=False)
+    df.reset_index(inplace=True)
+    fa = df['Sequence']
+    df = df[['Start','End','kmerLLR','fwdLLR','seqName','Sequence']]
+
+    return df
 def kmersWithAmbigIndex(tSeq,k):
     O = [tSeq[i:i+k].upper() for i in range(0,len(tSeq)-k+1)]
     O = [o for o in O if 'N' not in o]
@@ -82,6 +98,41 @@ def LLR(hits,k,E):
         llr = LLRPos-LLRNeg
         arr[i] = llr
     return arr
+
+def getFwd(seqHits,A,pi,states,E,k,alphabet):
+    fwdPs = []
+    for hit in seqHits:
+        O = [hit[i:i+k].upper() for i in range(0,len(hit)-k+1)]
+        O = [o for o in O if 'N' not in o]
+        '''
+        forward algorithm to calculate log P(O|HMM)
+        '''
+        fP = corefunctions.fwd(O,A,pi,states,E,k,alphabet)
+        fwdPs.append(fP)
+    return fwdPs
+
+def formatHits(hits):
+    idx = 0
+    indexGroupHits = []
+    # Loop below formats the hmm output as such:
+    # [([0,1,2]),'---'),([3,4],'++'),([5],'-'),...]
+    # Grouping HMM states with their correct index in the list of k-mers
+    for i,group in enumerate(groupedHits):
+        indexGroupHits.append([])
+        for kmer in group:
+            indexGroupHits[i].append(idx)
+            idx+=1
+    hits = list(zip(indexGroupHits,groupedHits))
+    seqHits = []
+    seqHitCoords = []
+    for group in hits:
+        if '+' in group[1]:
+            start,end = group[0][0],group[0][-1]+k #convert k-mer coord to bp coord
+            seqHitCoords.append(f'{start}:{end}')
+            seqHits.append(tSeq[start:end])
+    starts = np.array([int(c.split(':')[0]) for c in seqHitCoords])
+    ends = np.array([int(c.split(':')[1]) for c in seqHitCoords])
+    return seqHits,starts,ends
 
 def transitionMatrix(kmers,k,alphabet):
     states = np.zeros((4**(int(k)-1), 4), dtype=np.float64)
@@ -199,7 +250,6 @@ def viterbi(O,A,E,states,pi):
 
 '''
 incomplete baumwelch implementation
-
 '''
 def baumWelch(O,A,pi,states,E):
     ai = [{}]

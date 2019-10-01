@@ -24,49 +24,20 @@ Run several functions including viterbi algorithm, log-likelihood, and generate 
 Input: fasta file information
 Output: dataframe object
 '''
-def calculateSimilarity(data):
+def hmmCalc(data):
     tHead,tSeq = data
     O,oIdx,nBP = corefunctions.kmersWithAmbigIndex(tSeq,k)
     A,E,states,pi= hmm['A'],hmm['E'],hmm['states'],hmm['pi']
-    # Viterbi algorithm
     bTrack = corefunctions.viterbi(O,A,E,states,pi)
-    #Zip the indices of unambig k-mers with their HMM state labels
+    #Zip the indices of unambig k-mers with their viterbi derived HMM state labels
     coordBTrack = list(zip(oIdx,bTrack)) # [(1,'-'),(2,'+',...(n,'+'))]
     mergedTrack = coordBTrack + nBP # add back in ambig locations
     mergedTrack.sort(key=itemgetter(0)) # sort master list by index
     hmmTrack = [i[1] for i in mergedTrack] # fetch just state label from mergedTrack ['-','+',...,'+']
     groupedHits = corefunctions.groupHMM(hmmTrack) # ['-----','++++++++++','-','++++','------------']
-    idx = 0
-    indexGroupHits = []
+    seqHits,starts,ends = corefunctions.formatHits(groupedHits)
 
-    # Loop below formats the hmm output as such:
-    # [([0,1,2]),'---'),([3,4],'++'),([5],'-'),...]
-    # Grouping HMM states with their correct index in the list of k-mers
-    for i,group in enumerate(groupedHits):
-        indexGroupHits.append([])
-        for kmer in group:
-            indexGroupHits[i].append(idx)
-            idx+=1
-    hits = list(zip(indexGroupHits,groupedHits))
-    seqHits = []
-    seqHitCoords = []
-    for group in hits:
-        if '+' in group[1]:
-            start,end = group[0][0],group[0][-1]+k #convert k-mer coord to bp coord
-            seqHitCoords.append(f'{start}:{end}')
-            seqHits.append(tSeq[start:end])
-    starts = np.array([int(c.split(':')[0]) for c in seqHitCoords])
-    ends = np.array([int(c.split(':')[1]) for c in seqHitCoords])
-    fwdPs = []
-    for hit in seqHits:
-        O = [hit[i:i+k].upper() for i in range(0,len(hit)-k+1)]
-        O = [o for o in O if 'N' not in o]
-        '''
-        forward algorithm to calculate log P(O|HMM)
-        '''
-        fP = corefunctions.fwd(O,A,pi,states,E,k,alphabet)
-        fwdPs.append(fP) #negative log P val
-    # Standard output (hit by hit)
+    fwdPs = corefunctions.getFwd(seqHits)
     if (seqHits) and (not args.wt):
         info = list(zip(seqHits,starts,ends))
         dataDict = dict(zip(list(range(len(seqHits))),info))
@@ -134,7 +105,7 @@ for kVal in kVals:
     targetMap = defaultdict(list)
     #Pool processes onto number of CPU cores specified by the user
     with pool.Pool(args.n) as multiN:
-        jobs = multiN.starmap(calculateSimilarity,product(*[list(zip(targetHeaders,targetSeqs))]))
+        jobs = multiN.starmap(hmmCalc,product(*[list(zip(targetHeaders,targetSeqs))]))
         dataDict = dict(jobs)
     #Check if no hits were found
     # if not all(v == None for v in dataDict.values()):
