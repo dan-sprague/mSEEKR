@@ -1,8 +1,8 @@
 #!/bin/bash
-python kmers.py --fasta ./fastaFiles/noHumanA.fa -k 2,3,4,5,6 --name A -n 8 --dir ./counts/
-python kmers.py --fasta ./fastaFiles/noHumanB.fa -k 2,3,4,5,6 --name B -n 8 --dir ./counts/
-python kmers.py --fasta ./fastaFiles/noHumanD.fa -k 2,3,4,5,6 --name D -n 8 --dir ./counts/
-python kmers.py --fasta ./fastaFiles/noHumanE.fa -k 2,3,4,5,6 --name E -n 8 --dir ./counts/
+python kmers.py --fasta ./fastaFiles/humanA.fa -k 2,3,4,5,6 --name A -n 8 --dir ./counts/
+python kmers.py --fasta ./fastaFiles/humanB.fa -k 2,3,4,5,6 --name B -n 8 --dir ./counts/
+python kmers.py --fasta ./fastaFiles/humanD.fa -k 2,3,4,5,6 --name D -n 8 --dir ./counts/
+python kmers.py --fasta ./fastaFiles/humanE.fa -k 2,3,4,5,6 --name E -n 8 --dir ./counts/
 python kmers.py --fasta /Users/dan/Documents/Lab/hgTranscriptome/hg26Transcripts.fa -k 2,3,4,5,6 --name hgT -n 8 --dir ./counts/
 # python kmers.py --fasta ./fastaFiles/noRatAE.fa -k 2,3,4,5,6 --name noRatAE -n 4
 # python kmers.py --fasta ./fastaFiles/noRatBCD.fa -k 2,3,4,5,6 --name noRatBCD -n 4

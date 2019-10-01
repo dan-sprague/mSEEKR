@@ -10,24 +10,78 @@ from collections import defaultdict
 import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy.special import logsumexp
+from operator import itemgetter
+
+
+
+''' Key for itertools groupby
+    Alters flag when sequence changes from one condition to another
+    Input: Sequence of characters with some alphabet and a trigger condition
+    Output: flag: 0 or 1
 '''
 
-SCORE and transitionMatrix are OLD markov chain functions
-Keeping here in case it proves useful
+class Key(object):
+    def __init__(self):
+        self.is_nt,self.flag,self.prev = ['-','N'],[0,1],None
+    def __call__(self,e):
+        # Initial True/False  if first char in string is + or -
+        ebool = any(x in self.is_nt for x in e)
+        # If key exists (self.prev is defined), do true/false check
+        # else, set value to false
+        if self.prev:
+            prevbool = any(x in self.is_nt for x in self.prev)
+        else:
+            prevbool = None
+        # if string goes from - to +, or + to -, swap flag
+        if prevbool != ebool:
+            self.flag = self.flag[::-1]
+        # set previous encountered char, for the next interation of this, to the current value
+        self.prev = e
+        return self.flag[0]
 
+''' groupHMM
+Return a list of strings separating HMM state labels
+Input: String
+Output: List of lists
+Output example: ['---','++','------','+','-------',...]
+'''
+def groupHMM(seq):
+    return [''.join(list(g)) for k,g in itertools.groupby(seq,key=Key())]
+
+''' kmersWithAmbigIndex
+Return list of kmers, indices of k-mers without ambiguity, and indices of those
+with ambiguity
+Input: string
+Output: List of string, list of indices, list of indices
+'''
+def kmersWithAmbigIndex(tSeq,k):
+    O = [tSeq[i:i+k].upper() for i in range(0,len(tSeq)-k+1)]
+    O = [o for o in O if 'N' not in o]
+    # Match k-mers without ambig char to index in original string
+    oIdx = [i for i in range(0,len(tSeq)-k+1) if 'N' not in tSeq[i:i+k]]
+    # Match k-mers with ambig char to index in original string
+    nBP = [i for i in range(0,len(tSeq)-k+1) if 'N' in tSeq[i:i+k]]
+    # zip the indices with marker character N
+    nBP = list(zip(nBP,['N']*len(nBP)))
+    return O, oIdx, nBP
+
+''' LLR
+Return log-likelihood ratio between two models in HMM for + k-mers
+Input: sequnce of hits, value of k, k-mer frequencies in HMM emmission matrix
+Output: Array of LLRs for each hit
 '''
 
-def score(seq, k, likelihood,alphabet):
-    LLR=0
-    obs = [seq[i:i+k] for i in range(len(seq)-k+1)]
-    stateKmers = [''.join(p) for p in product(alphabet,repeat=k-1)]
-    nextState = dict(zip(alphabet,range(len(alphabet))))
-    currState = dict(zip(stateKmers,range(4**(k-1))))
-    for kmer in obs:
-        if ('N' not in kmer) and ('$' not in kmer):
-            i, j = currState[kmer[:k-1]], nextState[kmer[-1]]
-            LLR += likelihood[i, j]
-    return LLR
+def LLR(hits,k,E):
+    arr = np.zeros(len(hits))
+    for i,hit in enumerate(hits):
+        LLRPos,LLRNeg=0,0
+        for j in range(len(hit)-k+1):
+            kmer=hit[j:j+k]
+            LLRPos += E['+'][kmer]
+            LLRNeg += E['-'][kmer]
+        llr = LLRPos-LLRNeg
+        arr[i] = llr
+    return arr
 
 def transitionMatrix(kmers,k,alphabet):
     states = np.zeros((4**(int(k)-1), 4), dtype=np.float64)
@@ -52,17 +106,6 @@ def nucContent(nullSeqs,alphabet):
 # Calculate the log2 odds table between two matrices
 def logLTbl(q,null):
     return np.log2(q) - np.log2(null)
-
-
-# Plot tiled markov chain plots... unused now
-def plotTiles(arr,outname,S):
-    sns.set_context('talk')
-    plt.figure(figsize=(10,6))
-    plt.plot(arr)
-    plt.axhline(y=S,linestyle='--',color='black')
-    plt.tight_layout()
-    plt.savefig(outname,bbox_inches='tight')
-    plt.clf()
 
 '''
 HMM: Generate dictionaries containing information necessary to perform the viterbi algorithm

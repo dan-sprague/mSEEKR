@@ -19,75 +19,6 @@ import pandas as pd
 from operator import itemgetter
 
 
-''' Key for itertools groupby
-    Alters flag when sequence changes from one condition to another
-    Input: Sequence of characters with some alphabet and a trigger condition
-    Output: flag: 0 or 1
-'''
-
-class Key(object):
-    def __init__(self):
-        self.is_nt,self.flag,self.prev = ['-','N'],[0,1],None
-    def __call__(self,e):
-        # Initial True/False  if first char in string is + or -
-        ebool = any(x in self.is_nt for x in e)
-        # If key exists (self.prev is defined), do true/false check
-        # else, set value to false
-        if self.prev:
-            prevbool = any(x in self.is_nt for x in self.prev)
-        else:
-            prevbool = None
-        # if string goes from - to +, or + to -, swap flag
-        if prevbool != ebool:
-            self.flag = self.flag[::-1]
-        # set previous encountered char, for the next interation of this, to the current value
-        self.prev = e
-        return self.flag[0]
-
-''' groupHMM
-Return a list of strings separating HMM state labels
-Input: String
-Output: List of lists
-Output example: ['---','++','------','+','-------',...]
-'''
-def groupHMM(seq):
-    return [''.join(list(g)) for k,g in itertools.groupby(seq,key=Key())]
-
-''' kmersWithAmbigIndex
-Return list of kmers, indices of k-mers without ambiguity, and indices of those
-with ambiguity
-Input: string
-Output: List of string, list of indices, list of indices
-'''
-def kmersWithAmbigIndex(tSeq,k):
-    O = [tSeq[i:i+k].upper() for i in range(0,len(tSeq)-k+1)]
-    O = [o for o in O if 'N' not in o]
-    # Match k-mers without ambig char to index in original string
-    oIdx = [i for i in range(0,len(tSeq)-k+1) if 'N' not in tSeq[i:i+k]]
-    # Match k-mers with ambig char to index in original string
-    nBP = [i for i in range(0,len(tSeq)-k+1) if 'N' in tSeq[i:i+k]]
-    # zip the indices with marker character N
-    nBP = list(zip(nBP,['N']*len(nBP)))
-    return O, oIdx, nBP
-
-''' LLR
-Return log-likelihood ratio between two models in HMM for + k-mers
-Input: sequnce of hits, value of k, k-mer frequencies in HMM emmission matrix
-Output: Array of LLRs for each hit
-'''
-
-def LLR(hits,k,E):
-    arr = np.zeros(len(hits))
-    for i,hit in enumerate(hits):
-        LLRPos,LLRNeg=0,0
-        for j in range(len(hit)-k+1):
-            kmer=hit[j:j+k]
-            LLRPos += E['+'][kmer]
-            LLRNeg += E['-'][kmer]
-        llr = LLRPos-LLRNeg
-        arr[i] = llr
-    return arr
-
 ''' calculateSimilarity
 Run several functions including viterbi algorithm, log-likelihood, and generate output dataframes
 Input: fasta file information
@@ -95,7 +26,7 @@ Output: dataframe object
 '''
 def calculateSimilarity(data):
     tHead,tSeq = data
-    O,oIdx,nBP = kmersWithAmbigIndex(tSeq,k)
+    O,oIdx,nBP = corefunctions.kmersWithAmbigIndex(tSeq,k)
     A,E,states,pi= hmm['A'],hmm['E'],hmm['states'],hmm['pi']
     # Viterbi algorithm
     bTrack = corefunctions.viterbi(O,A,E,states,pi)
@@ -104,7 +35,7 @@ def calculateSimilarity(data):
     mergedTrack = coordBTrack + nBP # add back in ambig locations
     mergedTrack.sort(key=itemgetter(0)) # sort master list by index
     hmmTrack = [i[1] for i in mergedTrack] # fetch just state label from mergedTrack ['-','+',...,'+']
-    groupedHits = groupHMM(hmmTrack) # ['-----','++++++++++','-','++++','------------']
+    groupedHits = corefunctions.groupHMM(hmmTrack) # ['-----','++++++++++','-','++++','------------']
     idx = 0
     indexGroupHits = []
 
@@ -141,7 +72,7 @@ def calculateSimilarity(data):
         dataDict = dict(zip(list(range(len(seqHits))),info))
         df = pd.DataFrame.from_dict(dataDict,orient='index')
         #calculate log-likelihood ratio of k-mers in the + model vs - model
-        df['kmerLLR'] = LLR(seqHits,k,E)
+        df['kmerLLR'] = corefunctions.LLR(seqHits,k,E)
         df['fwdLLR'] = fwdPs
         df['seqName'] = tHead
         df.columns = ['Sequence','Start','End','kmerLLR','fwdLLR','seqName']
@@ -153,7 +84,7 @@ def calculateSimilarity(data):
 
     # Alternative output (transcript by transcript)
     elif (seqHits) and (args.wt):
-        sumHits = LLR(seqHits,k,E)
+        sumHits = corefunctions.LLR(seqHits,k,E)
         lens = ends-starts # lengths of individual hits
         df = pd.DataFrame([np.sum(sumHits)]) # sum of hits
         df['totalLenHits'] = (np.sum(lens)) # sum of all hit lengths
@@ -179,8 +110,6 @@ parser.add_argument('--fasta',action='store_true',help='FLAG: print sequence of 
 parser.add_argument('--wt',action='store_true',help='FLAG: If passed, return total log-likelihood over all hits in a fasta entry')
 args = parser.parse_args()
 alphabet = [letter for letter in args.a]
-outLog = open('./log.txt','w')
-
 #Loop over values of k
 kVals = args.k.split(',')
 args.a = args.a.upper()
@@ -200,16 +129,13 @@ for kVal in kVals:
     # Explicitly determine k from the size of the log matrix and the size of the alphabet used to generate it
     k = int(log(len(hmm['E']['+'].keys()),len(args.a)))
     kmers = [''.join(p) for p in itertools.product(alphabet,repeat=k)] # generate k-mers
-    outLog.write('\nGenerating model of LLR distribution')
     target = Reader(args.db)
     targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
     targetMap = defaultdict(list)
-    outLog.write('\nScanning database sequences')
     #Pool processes onto number of CPU cores specified by the user
     with pool.Pool(args.n) as multiN:
         jobs = multiN.starmap(calculateSimilarity,product(*[list(zip(targetHeaders,targetSeqs))]))
         dataDict = dict(jobs)
-    outLog.write('\nDone')
     #Check if no hits were found
     # if not all(v == None for v in dataDict.values()):
     if not args.wt:
@@ -227,5 +153,3 @@ for kVal in kVals:
         dataFrames.sort_values(by='sumFwdLLR',ascending=False,inplace=True)
         dataFrames.reset_index(inplace=True,drop=True)
         dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')
-
-outLog.close()
