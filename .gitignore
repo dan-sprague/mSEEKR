@@ -4,4 +4,7 @@
 *.so
 *.c
 
+bin/
+build/
+__pycache__
 
