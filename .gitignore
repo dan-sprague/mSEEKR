@@ -4,6 +4,7 @@
 *.so
 *.c
 
+results/
 bin/
 build/
 __pycache__
