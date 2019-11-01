@@ -256,62 +256,30 @@ def viterbi(O,A,E,states,pi):
 '''
 incomplete baumwelch implementation
 '''
-def baumWelch(O,A,pi,states,E):
+def fB(O,A,pi,states,E):
     ai = [{}]
+    bi = [{}]
     N = len(O)
-    for state in states:
-        ai[0][state] = pi[state]+E[state][O[0]]
-    for n in range(1,N):
-        ai.append({})
-        for state in states:
-            ai[n][state] = E[state][O[n]]
-            s = 0
-            for j in states:
-                s+=ai[n-1][j]+A[j][state]
-            ai[n][state]+=s
-    BT = [{}]
-    for state in states:
-        BT[0][state] = np.log2(1)
-    backO = O[::-1]
-    for n in range(N-1,-1,-1):
-        BT.append({})
-        s = 0
-        for state in states:
-            for nextState in states:
-                s+=BT[n-1][nextState] + A[state][nextState]+E[state][backO[n-1]]
-            BT[n][state] = s
+
     return ai
 
 def fwd(O,A,pi,states,E,k,alphabet):
     a = [{}]
-    naiveT = [{}]
     N = len(O)
     kmers = [''.join(p) for p in product(alphabet,repeat=k)]
-    freqs = [np.log2(1/len(kmers))]*len(kmers)
-    naiveA = {'+':{'+':np.log2(.5),'-':np.log2(.5)},'-':{'+':np.log2(.5),'-':np.log2(.5)}}
-    naiveE = {'+': dict(zip(kmers,freqs)),'-':dict(zip(kmers,freqs))}
     for state in states:
         a[0][state] = pi[state]+E[state][O[0]]
-        naiveT[0][state] = pi[state]+naiveE[state][O[0]]
     for n in range(1,N):
         a.append({})
-        naiveT.append({})
         for state in states:
             P=[]
             naiveP = []
             for pState in states:
                 P.append(a[n-1][pState]+A[state][pState] + E[state][O[n]])
-                naiveP.append(naiveT[n-1][pState]+naiveA[state][pState]+naiveE[state][O[n]])
             P = logsumexp(P)
-            naiveP = logsumexp(naiveP)
             a[n][state] = P
-            naiveT[n][state] = naiveP
     fwdP = []
-    naiveFwdP = []
     for state in states:
         fwdP.append(a[-1][state])
-        naiveFwdP.append(naiveT[-1][state])
     fwdP = logsumexp(fwdP)
-    naiveFwdP = logsumexp(naiveFwdP)
-    llr = fwdP-naiveFwdP
-    return llr
+    return fwdP
