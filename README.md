@@ -109,9 +109,9 @@ Parameters:
 ## Find HMM state path through sequences of interest
 
   1. Run the following command
-
+```
   python mSEEKR.py --db ./fastaFiles/mamX/mouse.fa -n 8 --prefix test --model ./markovModels/
-
+```
 
   Parameters
 
