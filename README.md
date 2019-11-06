@@ -1,9 +1,7 @@
 # mSEEKR
 
-##################################
-Installation
-##################################
-
+<hr/>
+# Installation
 ## Dependencies
 ### Python3.6
 check with command 
@@ -38,17 +36,17 @@ conda install -c anaconda cython
 	python setup.py build_ext --inplace
 ```
 ### Ignore warnings (unless further steps don't work)
+<hr/>
 
-##################################
-Counting k-mers
-##################################
+## Counting k-mers
+
 
   1. Curate unique fasta files for queries and null model before hand
   2. Use the following command
-
+```
   python kmers.py --fasta ./fastaFiles/mouseA.fa -k 2,3,4 --name mouseA -n 3
   python kmers.py --fasta ./fastaFiles/gencode.vM17.lncRNA_transcripts.fa -k 2,3,4 --name mm10Trscpts -n 3
-
+```
 
   Parameters:
 
