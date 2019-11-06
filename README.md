@@ -7,13 +7,17 @@ Installation
     a. Python3.6
       check with command 
 
-	```
+	```python
 	python -V
 	```
 
-      if < 3.6, easiest solution to download anaconda python3.6/3.7
+      if < 3.6, easiest solution is to download anaconda python3.6/3.7
     b. cython
-      Try ```which cython```, if none
+      Try 
+      ```
+      which cython
+      ``` 
+      if none
 		
 ```      pip install cython```
 
