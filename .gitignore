@@ -5,10 +5,10 @@
 *.c
 fastaFiles/
 results/
-bin/
+bin/*/
 build/
-markovModels/*
-counts/*
+markovModels/*/*
+counts/*.skr
 __pycache__
 
 .DS_Store
