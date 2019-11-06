@@ -52,7 +52,6 @@ conda install -c anaconda cython
 
 #### Parameters:
 
-<ol>
 1. --fasta : path to fasta file
 2. -k : comma separated list of values of k
 3. --name : name to give output file
@@ -67,7 +66,7 @@ conda install -c anaconda cython
 <hr/>
 ## Training markov models
 
-  0. Count k-mers for queries and null before proceeding
+  0. Count k-mers for queries and null before proceeding  
   1. Run the following command
 ```
   python train.py --query ./counts/mouseA.skr --null ./counts/mm10Trscpts.skr -k 2,3,4 --qPrefix mouseA --nullPrefix mm10Trscpts --qT .9999 --nT .9999 --dir ./markovModels/
