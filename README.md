@@ -1,37 +1,43 @@
-mSEEKR
+# mSEEKR
 
 ##################################
 Installation
 ##################################
-  1. Dependencies
-    a. Python3.6
-      check with command 
 
-	```python
-	python -V
-	```
+## Dependencies
+### Python3.6
+check with command 
 
-      if < 3.6, easiest solution is to download anaconda python3.6/3.7
-    b. cython
-      Try 
-      ```
-      which cython
-      ``` 
-      if none
-		
-```      pip install cython```
+```
+python -V
+```
 
-      OR
+if < 3.6, easiest solution is to download anaconda python3.6/3.7
+### cython
 
-```      conda install -c anaconda cython```
+Try 
+```
+which cython
+``` 
+if none
 
-  2. Type following commands in desired directory
+```
+pip install cython
+```
 
-    git clone https://github.com/spragud2/mSEEKR.git
-    cd mSEEKR/
-    python setup.py build_ext --inplace
+OR
 
-  3. Ignore warnings (unless further steps don't work)
+```
+conda install -c anaconda cython
+```
+
+### Type following commands in desired directory
+```
+	git clone https://github.com/spragud2/mSEEKR.git
+	cd mSEEKR/
+	python setup.py build_ext --inplace
+```
+### Ignore warnings (unless further steps don't work)
 
 ##################################
 Counting k-mers
