@@ -4,6 +4,10 @@
 *.so
 *.c
 build/
+bin/
+fastaFiles/
+markovModels/
+counts/
 __pycache__
 .ipynb_checkpoints/
 .DS_Store
