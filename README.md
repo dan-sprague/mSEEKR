@@ -5,17 +5,20 @@ Installation
 ##################################
   1. Dependencies
     a. Python3.6
-      check with command "python -V"
+      check with command 
+
+	```python -V
+	```
 
       if < 3.6, easiest solution to download anaconda python3.6/3.7
     b. cython
-      Try "which cython", if none
-
-      pip install cython
+      Try ```which cython```, if none
+		
+```      pip install cython```
 
       OR
 
-      conda install -c anaconda cython
+```      conda install -c anaconda cython```
 
   2. Type following commands in desired directory
 
