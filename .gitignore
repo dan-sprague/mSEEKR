@@ -3,12 +3,7 @@
 
 *.so
 *.c
-fastaFiles/
-results/
-bin/**
 build/
-markovModels/**
-counts/**
 __pycache__
 .ipynb_checkpoints/
 .DS_Store
