@@ -7,7 +7,8 @@ Installation
     a. Python3.6
       check with command 
 
-	```python -V
+	```
+	python -V
 	```
 
       if < 3.6, easiest solution to download anaconda python3.6/3.7
