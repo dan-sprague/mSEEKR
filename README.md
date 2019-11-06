@@ -2,9 +2,7 @@
 
 This is a program from identifying regions of high similarity based on *k*-mer content to some set of query sequences, relative to a null background set of sequences.
 
-## Installation
-
-### Dependencies
+## Dependencies
 
 #### Python3.6
 check with command 
@@ -31,6 +29,7 @@ OR
 ```
 conda install -c anaconda cython
 ```
+## Installation
 
 #### Type following commands in desired directory
 ```
