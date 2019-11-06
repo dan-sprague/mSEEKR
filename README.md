@@ -64,6 +64,7 @@ conda install -c anaconda cython
   Outputs binary .skr (seekr) files containing count matrices to --dir
 
 <hr/>
+
 ## Training markov models
 
   0. Count k-mers for queries and null before proceeding  
@@ -104,9 +105,9 @@ Parameters:
     .
     .
 
-```
-Find HMM state path through sequences of interest
-```
+
+## Find HMM state path through sequences of interest
+
   1. Run the following command
 
   python mSEEKR.py --db ./fastaFiles/mamX/mouse.fa -n 8 --prefix test --model ./markovModels/
