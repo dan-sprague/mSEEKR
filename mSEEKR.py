@@ -31,15 +31,14 @@ def hmmCalc(data):
 
     # Return sequences of HMM hits, and their start and end locations in the original sequence
     seqHits,starts,ends = corefunctions.formatHits(groupedHits,k,tSeq)
-
-    fwdPs = corefunctions.getFwd(seqHits,A,pi,states,E,k,alphabet)
+    fwdbwd = corefunctions.fwd_bkw(O, states, pi, A, E, '-')
+    pickle.dump(fwdbwd,open('./test.p','wb'))
     if (seqHits) and (not args.wt):
-        df = corefunctions.hitOutput(seqHits,starts,ends,k,E,fwdPs,tHead,tSeq)
+        df = corefunctions.hitOutput(seqHits,starts,ends,k,E,tHead,tSeq)
         return tHead,df
-
     # Alternative output (transcript by transcript)
     elif (seqHits) and (args.wt):
-        df = corefunctions.transcriptOutput(seqHits,starts,ends,k,E,fwdPs,tHead,tSeq)
+        df = corefunctions.transcriptOutput(seqHits,starts,ends,k,E,tHead,tSeq)
         return tHead,df
     else:
         return tHead,None
@@ -88,15 +87,15 @@ for kVal in kVals:
     if not args.wt:
         dataFrames = pd.concat([df for df in dataDict.values() if not None])
         dataFrames['Length'] = dataFrames['End'] - dataFrames['Start']
-        dataFrames = dataFrames[['Start','End','Length','fwdLLR','kmerLLR','seqName','Sequence']]
+        dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName','Sequence']]
         if not args.fasta:
-            dataFrames = dataFrames[['Start','End','Length','fwdLLR','kmerLLR','seqName']]
-        dataFrames.sort_values(by='fwdLLR',ascending=False,inplace=True)
+            dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName']]
+        dataFrames.sort_values(by='kmerLLR',ascending=False,inplace=True)
         dataFrames.reset_index(inplace=True,drop=True)
         dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')
     elif args.wt:
         dataFrames = pd.concat([df for df in dataDict.values() if not None])
-        dataFrames = dataFrames[['seqName','sumFwdLLR','sumLLR','totalLenHits','fracTranscriptHit','longestHit']]
-        dataFrames.sort_values(by='sumFwdLLR',ascending=False,inplace=True)
+        dataFrames = dataFrames[['seqName','sumLLR','totalLenHits','fracTranscriptHit','longestHit']]
+        dataFrames.sort_values(by='sumLLR',ascending=False,inplace=True)
         dataFrames.reset_index(inplace=True,drop=True)
         dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')

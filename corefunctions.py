@@ -46,23 +46,22 @@ Input: string
 Output: List of string, list of indices, list of indices
 '''
 
-def hitOutput(seqHits,starts,ends,k,E,fwdPs,tHead,tSeq):
+def hitOutput(seqHits,starts,ends,k,E,tHead,tSeq):
     info = list(zip(seqHits,starts,ends))
     dataDict = dict(zip(list(range(len(seqHits))),info))
     df = pd.DataFrame.from_dict(dataDict,orient='index')
     #calculate log-likelihood ratio of k-mers in the + model vs - model
     df['kmerLLR'] = LLR(seqHits,k,E)
-    df['fwdLLR'] = fwdPs
     df['seqName'] = tHead
-    df.columns = ['Sequence','Start','End','kmerLLR','fwdLLR','seqName']
-    df.sort_values(by='fwdLLR',inplace=True,ascending=False)
+    df.columns = ['Sequence','Start','End','kmerLLR','seqName']
+    df.sort_values(by='kmerLLR',inplace=True,ascending=False)
     df.reset_index(inplace=True)
     fa = df['Sequence']
-    df = df[['Start','End','kmerLLR','fwdLLR','seqName','Sequence']]
+    df = df[['Start','End','kmerLLR','seqName','Sequence']]
 
     return df
 
-def transcriptOutput(seqHits,starts,ends,k,E,fwdPs,tHead,tSeq):
+def transcriptOutput(seqHits,starts,ends,k,E,tHead,tSeq):
 
     sumHits = LLR(seqHits,k,E)
     lens = ends-starts # lengths of individual hits
@@ -71,8 +70,7 @@ def transcriptOutput(seqHits,starts,ends,k,E,fwdPs,tHead,tSeq):
     df['fracTranscriptHit'] = df['totalLenHits']/len(tSeq) # fraction of transcript that is hit
     df['longestHit'] = np.max(lens) # longest HMM hit
     df['seqName'] = tHead
-    df['sumFwdAlgLogP'] = (np.sum(fwdPs))
-    df.columns = ['sumLLR','totalLenHits','fracTranscriptHit','longestHit','seqName','sumFwdLLR']
+    df.columns = ['sumLLR','totalLenHits','fracTranscriptHit','longestHit','seqName']
 
     return df
 def kmersWithAmbigIndex(tSeq,k):
@@ -186,10 +184,12 @@ def HMM(qCounts,nCounts,k,alphabet,m,n):
     countArr = np.array(list(qCounts.values()))
     # Convert raw counts to frequencies, then log probability
     hmmDict['+'] = np.log2(countArr/np.sum(countArr))
-
+    #hmmDict['+'] = hmmDict['+'] - np.mean(hmmDict['+'])
     countArr = np.array(list(nCounts.values()))
     # Convert raw counts to frequencies, then log probability
     hmmDict['-'] = np.log2(countArr/np.sum(countArr))
+    #hmmDict['-'] = hmmDict['-'] - np.mean(hmmDict['-'])
+
     states = ('+','-')
     pi = {'+':np.log2(.5),'-':np.log2(.5)}
     A = {'+':{'+':np.log2(m),'-':np.log2(1-m)},'-':{'+':np.log2(1-n),'-':np.log2(n)}}
@@ -252,16 +252,6 @@ def viterbi(O,A,E,states,pi):
         prev = ukprev[n+1][prev]
     backtrack = backtrack[::-1] # reverse the order
     return backtrack
-
-'''
-incomplete baumwelch implementation
-'''
-def fB(O,A,pi,states,E):
-    ai = [{}]
-    bi = [{}]
-    N = len(O)
-
-    return ai
 
 def fwd(O,A,pi,states,E,k,alphabet):
     a = [{}]

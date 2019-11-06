@@ -3,10 +3,12 @@
 
 *.so
 *.c
-
+fastaFiles/
 results/
 bin/
 build/
+markovModels/*
+counts/*
 __pycache__
 
 .DS_Store
