@@ -1,8 +1,10 @@
 # mSEEKR
 
-<hr/>
+
 # Installation
+
 ## Dependencies
+
 ### Python3.6
 check with command 
 
