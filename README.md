@@ -1,11 +1,11 @@
 # mSEEKR
 
 
-# Installation
+## Installation
 
-## Dependencies
+### Dependencies
 
-### Python3.6
+#### Python3.6
 check with command 
 
 ```
@@ -13,7 +13,7 @@ python -V
 ```
 
 if < 3.6, easiest solution is to download anaconda python3.6/3.7
-### cython
+#### cython
 
 Try 
 ```
@@ -31,13 +31,13 @@ OR
 conda install -c anaconda cython
 ```
 
-### Type following commands in desired directory
+#### Type following commands in desired directory
 ```
 	git clone https://github.com/spragud2/mSEEKR.git
 	cd mSEEKR/
 	python setup.py build_ext --inplace
 ```
-### Ignore warnings (unless further steps don't work)
+#### Ignore warnings (unless further steps don't work)
 <hr/>
 
 ## Counting k-mers
@@ -62,16 +62,16 @@ conda install -c anaconda cython
 
   Outputs binary .skr (seekr) files containing count matrices to /counts/ directory
 
-##################################
-Training markov models
-##################################
+<hr/>
+## Training markov models
 
   0. Count k-mers for queries and null before proceeding
   1. Run the following command
-
+```
   python train.py --query ./counts/mouseA.skr --null ./counts/mm10Trscpts.skr -k 2,3,4 --qPrefix mouseA --nullPrefix mm10Trscpts --qT .9999 --nT .9999 --dir ./markovModels/
+```
 
-  Parameters:
+Parameters:
 
   --query : Path to query count file
   --null : Path to null count file
@@ -105,9 +105,9 @@ Training markov models
     .
     .
 
-###################################################
+```
 Find HMM state path through sequences of interest
-###################################################
+```
   1. Run the following command
 
   python mSEEKR.py --db ./fastaFiles/mamX/mouse.fa -n 8 --prefix test --model ./markovModels/
@@ -117,6 +117,7 @@ Find HMM state path through sequences of interest
 
   --db : sequences of interest to run the HMM on
   --model : path to directory containing models (ie /markovModels/)
+  -k : value of k to use in the analysis (must have been specified in training)
   -n : Number of processing cores to use. Scales with size of fasta file (# of entries, not sequence length)
   --prefix : experiment prefix name
 
