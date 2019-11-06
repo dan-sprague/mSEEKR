@@ -40,7 +40,7 @@ conda install -c anaconda cython
 #### Ignore warnings (unless further steps don't work)
 <hr/>
 
-## Counting k-mers
+## Counting k-mers 
 
 
   1. Curate unique fasta files for queries and null model before hand
@@ -50,17 +50,18 @@ conda install -c anaconda cython
   python kmers.py --fasta ./fastaFiles/gencode.vM17.lncRNA_transcripts.fa -k 2,3,4 --name mm10Trscpts -n 3
 ```
 
-  Parameters:
+#### Parameters:
 
-    --fasta : path to fasta file
-    -k : comma separated list of values of k
-    --name : name to give output file
-    -n : number of processing cores to use (scales with value of k -- so should be less than or equal to number of k values specified)
+--fasta : path to fasta file
+-k : comma separated list of values of k
+--name : name to give output file
+-n : number of processing cores to use (scales with value of k -- so should be less than or equal to number of k values specified)
+--dir : output directory 
 
 
   Output:
 
-  Outputs binary .skr (seekr) files containing count matrices to /counts/ directory
+  Outputs binary .skr (seekr) files containing count matrices to --dir
 
 <hr/>
 ## Training markov models
