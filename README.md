@@ -52,11 +52,12 @@ conda install -c anaconda cython
 
 #### Parameters:
 
---fasta : path to fasta file
--k : comma separated list of values of k
---name : name to give output file
--n : number of processing cores to use (scales with value of k -- so should be less than or equal to number of k values specified)
---dir : output directory 
+<ol>
+1. --fasta : path to fasta file
+2. -k : comma separated list of values of k
+3. --name : name to give output file
+4. -n : number of processing cores to use (scales with value of k -- so should be less than or equal to number of k values specified)
+5. --dir : output directory 
 
 
   Output:
@@ -74,16 +75,14 @@ conda install -c anaconda cython
 
 Parameters:
 
-  --query : Path to query count file
-  --null : Path to null count file
-  -k : comma separated list of values of k to train for, must have been calculated prior
-  --qPrefix : prefix file name for query
-  --nullPrefix : prefix file name for null
-
-  --qT : Query to query transition parameter, query to null is 1 - qT
-  --nT : Null to null transition parameter, null to query is 1 - nT
-
-  --dir : output directory
+1. --query : Path to query count file
+2. --null : Path to null count file
+3. -k : comma separated list of values of k to train for, must have been calculated prior
+4. --qPrefix : prefix file name for query
+5. --nullPrefix : prefix file name for null
+6. --qT : Query to query transition parameter, query to null is 1 - qT
+7. --nT : Null to null transition parameter, null to query is 1 - nT
+8. --dir : output directory
 
   Output:
 
@@ -116,9 +115,9 @@ Find HMM state path through sequences of interest
 
   Parameters
 
-  --db : sequences of interest to run the HMM on
-  --model : path to directory containing models (ie /markovModels/)
-  -k : value of k to use in the analysis (must have been specified in training)
-  -n : Number of processing cores to use. Scales with size of fasta file (# of entries, not sequence length)
-  --prefix : experiment prefix name
+  1. --db : sequences of interest to run the HMM on
+  2. --model : path to directory containing models (ie /markovModels/)
+  3. -k : value of k to use in the analysis (must have been specified in training)
+  4. -n : Number of processing cores to use. Scales with size of fasta file (# of entries, not sequence length)
+  5. --prefix : experiment prefix name
 
