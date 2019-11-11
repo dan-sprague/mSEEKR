@@ -31,8 +31,6 @@ def hmmCalc(data):
 
     # Return sequences of HMM hits, and their start and end locations in the original sequence
     seqHits,starts,ends = corefunctions.formatHits(groupedHits,k,tSeq)
-    fwdbwd = corefunctions.fwd_bkw(O, states, pi, A, E, '-')
-    pickle.dump(fwdbwd,open('./test.p','wb'))
     if (seqHits) and (not args.wt):
         df = corefunctions.hitOutput(seqHits,starts,ends,k,E,tHead,tSeq)
         return tHead,df
