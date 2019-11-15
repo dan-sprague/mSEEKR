@@ -3,7 +3,7 @@ from itertools import product
 from itertools import groupby
 from scipy.special import logsumexp
 import pandas as pd
-
+from scipy.stats import norm
 
 ''' Key for itertools groupby
     Alters flag when sequence changes from one condition to another
@@ -56,6 +56,7 @@ def hitOutput(seqHits,starts,ends,k,E,tHead,tSeq):
     df.columns = ['Sequence','Start','End','kmerLLR','seqName']
     df.sort_values(by='kmerLLR',inplace=True,ascending=False)
     df.reset_index(inplace=True)
+    a = p(E,df)
     fa = df['Sequence']
     df = df[['Start','End','kmerLLR','seqName','Sequence']]
 
@@ -101,6 +102,32 @@ def LLR(hits,k,E):
         llr = LLRPos-LLRNeg
         arr[i] = llr
     return arr
+
+'''
+# Calculate the joint probability of a hit with length L and score S
+# In an hmm the distribution of consecutive states follows a geometric distribution
+# Score S represents a sum of random variables that depends on the length of the hit
+# In particular, it is the variance that scales most with L as the mean is usually close to zero
+
+# Therefore
+
+# P(S,L) = P(S|L)*P(L)
+'''
+def p(E,df,aii=.8):
+    mat = np.array(list(E['+'].values())) - np.array(list(E['-'].values()))
+    m = np.mean(mat)
+    var = np.var(mat)
+    joint = np.zeros(len(df.index))
+    for i,row in df.iterrows():
+        L = row['End'] - row['Start']
+        S = row['kmerLLR']
+        pL=aii**(L-1) * (1-aii)
+        pSgivenL = norm.sf(S,L*m,L*var)
+        print(pSgivenL)
+        joint[i] = pSgivenL * pL
+    print(joint)
+    return joint
+
 
 def getFwd(seqHits,A,pi,states,E,k,alphabet):
     fwdPs = []
