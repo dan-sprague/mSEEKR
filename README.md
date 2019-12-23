@@ -79,7 +79,7 @@ Parameters:
 2. --null : Path to null count file
 3. -k : comma separated list of values of k to train for, must have been calculated prior
 4. --qPrefix : prefix file name for query
-5. --nullPrefix : prefix file name for null
+5. --nPrefix : prefix file name for null
 6. --qT : Query to query transition parameter, query to null is 1 - qT
 7. --nT : Null to null transition parameter, null to query is 1 - nT
 8. --dir : output directory
