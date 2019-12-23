@@ -32,7 +32,7 @@ F = Reader(args.fasta)
 fS = F.get_seqs()
 
 #Join sequences together using $ delimiter character
-fString = '$'.join(fS).upper()
+fString = '$'.join(fS).upper().strip()
 lenFString = sum([len(i) for i in fS])
 
 # Need to figure out how to deal with very long fasta files (~ 2-3X the size of the transcriptome in mice)

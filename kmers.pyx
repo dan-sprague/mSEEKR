@@ -19,11 +19,13 @@ cpdef main(str fString,int k,str a):
     return k,r
 
 # If k-mer is in dict of k-mers, add 1 to count
-# Return k-mer count dict 
+# Return k-mer count dict
 cdef countKmers(str fString,unsigned long long N,unsigned int K,dict kmerDict):
     cdef unsigned long long i
-    for i in range(N-K+1):
+    for i in range(0,N-K+1):
         curr = fString[i:i+K]
         if curr in kmerDict:
             kmerDict[curr]+=1
+        else:
+          continue
     return kmerDict

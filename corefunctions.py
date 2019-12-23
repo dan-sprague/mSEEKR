@@ -56,7 +56,6 @@ def hitOutput(seqHits,starts,ends,k,E,tHead,tSeq):
     df.columns = ['Sequence','Start','End','kmerLLR','seqName']
     df.sort_values(by='kmerLLR',inplace=True,ascending=False)
     df.reset_index(inplace=True)
-    a = p(E,df)
     fa = df['Sequence']
     df = df[['Start','End','kmerLLR','seqName','Sequence']]
 
@@ -113,20 +112,6 @@ def LLR(hits,k,E):
 
 # P(S,L) = P(S|L)*P(L)
 '''
-def p(E,df,aii=.8):
-    mat = np.array(list(E['+'].values())) - np.array(list(E['-'].values()))
-    m = np.mean(mat)
-    var = np.var(mat)
-    joint = np.zeros(len(df.index))
-    for i,row in df.iterrows():
-        L = row['End'] - row['Start']
-        S = row['kmerLLR']
-        pL=aii**(L-1) * (1-aii)
-        pSgivenL = norm.sf(S,L*m,L*var)
-        print(pSgivenL)
-        joint[i] = pSgivenL * pL
-    print(joint)
-    return joint
 
 
 def getFwd(seqHits,A,pi,states,E,k,alphabet):
