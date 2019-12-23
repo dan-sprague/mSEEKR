@@ -110,13 +110,13 @@ Parameters:
 
   1. Run the following command
 ```
-  python mSEEKR.py --db ./fastaFiles/mamX/mouse.fa -n 8 --prefix test --model ./markovModels/
+  python mSEEKR.py --db ./fastaFiles/mm10kcn.fa -n 8 --prefix test --model ./markovModels/mouseA_mm10Trscpts -k 3
 ```
 
   Parameters
 
   1. --db : sequences of interest to run the HMM on
-  2. --model : path to directory containing models (ie /markovModels/)
+  2. --model : path to directory containing models (ie /markovModels/query_null/)
   3. -k : value of k to use in the analysis (must have been specified in training)
   4. -n : Number of processing cores to use. Scales with size of fasta file (# of entries, not sequence length)
   5. --prefix : experiment prefix name
