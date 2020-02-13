@@ -110,7 +110,7 @@ Parameters:
 
   1. Run the following command
 ```
-  python mSEEKR.py --db ./fastaFiles/mm10kcn.fa -n 8 --prefix test --model ./markovModels/mouseA_mm10Trscpts -k 3
+  python mSEEKR.py --db ./fastaFiles/mm10kcn.fa -n 8 --prefix test --model ./markovModels/mouseA_mm10Trscpts -k 3 --fasta
 ```
 
   Parameters
@@ -120,4 +120,20 @@ Parameters:
   3. -k : value of k to use in the analysis (must have been specified in training)
   4. -n : Number of processing cores to use. Scales with size of fasta file (# of entries, not sequence length)
   5. --prefix : experiment prefix name
+  
+## Calculate SEEKR Correlations of HMM Hits to Query
+
+1. Run the following command 
+
+```
+python parseScore.py --query ./fastaFiles/mouseA.fa --parse test_mouseA_mm10Trscpts_3.txt --ref ./fastaFiles/gencode.vM17.lncRNA_transcripts.fa -k 3 --out seekr
+```
+
+Parameters
+
+1. --query : fasta file of query sequence used in HMM 
+2. --parse : path to output txt file from mSEEKR.py
+3. --ref : reference set of sequences for seekr standardization
+4. -k : k-mer length to use
+5. --out : output file suffix
 
