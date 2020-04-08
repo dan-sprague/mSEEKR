@@ -62,9 +62,15 @@ df = df.drop('Unnamed: 0',axis=1)
 
 ref = Count(infasta=args.ref,
            mean=False,std=False,log2=False,k=args.k)
+
+lens = np.array([len(i) for i in ref.seqs])
 ref.get_counts()
 
 R = ref.counts
+print(R)
+R/=1000
+R*=lens
+print(R) 
 R+=1
 R = np.log2(R)
 

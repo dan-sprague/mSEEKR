@@ -242,9 +242,9 @@ def viterbi(O,A,E,states,pi):
         ukprev.append({})
         for state in states:
             prevSelState = states[0] # this is just an arbitrary choice to start checking at the start of the list
-            currMaxProb = A[state][prevSelState] + uk[n-1][prevSelState] # probability function
+            currMaxProb = A[prevSelState][state] + uk[n-1][prevSelState] # probability function
             for pState in states[1:]: # now check the other states...
-                currProb = A[state][pState] + uk[n-1][pState]
+                currProb = A[pState][state] + uk[n-1][pState]
                 if currProb > currMaxProb: # if larger then the first one we checked, we have a new winner, store and continue loop and repeat
                     currMaxProb = currProb
                     prevSelState = pState
@@ -265,23 +265,86 @@ def viterbi(O,A,E,states,pi):
     backtrack = backtrack[::-1] # reverse the order
     return backtrack
 
-def fwd(O,A,pi,states,E,k,alphabet):
+'''
+Forward probabilties
+'''
+
+def fwd(O,A,pi,states,E):
     a = [{}]
     N = len(O)
-    kmers = [''.join(p) for p in product(alphabet,repeat=k)]
-    for state in states:
-        a[0][state] = pi[state]+E[state][O[0]]
+    for i in states:
+        a[0][i] = pi[i]+E[i][O[0]]
     for n in range(1,N):
         a.append({})
-        for state in states:
+        for i in states:
             P=[]
-            naiveP = []
-            for pState in states:
-                P.append(a[n-1][pState]+A[state][pState] + E[state][O[n]])
-            P = logsumexp(P)
-            a[n][state] = P
-    fwdP = []
-    for state in states:
-        fwdP.append(a[-1][state])
-    fwdP = logsumexp(fwdP)
-    return fwdP
+            for j in states:
+                P.append(a[n-1][j]+A[j][i])
+            margP = logsumexp(P)+E[i][O[n]]
+            a[n][i] = margP
+    return a
+
+'''
+Backward probabilties
+'''
+
+def bkw(O,A,pi,states,E):
+    b=[{}]
+    N = len(O)
+
+    for i in states:
+        b[0][i] = 0
+
+    for n in range(1,N):
+        b.append({})
+        for i in states:
+            sumTerm = []
+            for j in states:
+                s = b[n-1][j]+A[i][j]+E[j][O[N-n]]
+                sumTerm.append(s)
+            P = logsumexp(sumTerm)
+            b[n][i]= P
+    b = b[::-1]
+    return b
+
+'''
+
+Baum-Welch EM parameter updates 
+
+This is a custom implementation that only updates the transition matrix
+
+'''
+def update(a,b,O,states,A,E):
+    gamma = [{}]
+    epsilon = [{'+':{'+':0,'-':0},'-':{'+':0,'-':0}}]
+    T = len(O)
+    for t in range(T-1):
+        for i in states:
+            norm = logsumexp(a[t][i]+b[t][i])
+            gamma[t][i]=a[t][i]+b[t][i]-norm
+            for j in states:
+                numerator = a[t][i]+A[i][j]+b[t+1][j]+E[j][O[t+1]]
+                denom = []
+                for k in states:
+                    for w in states:
+                        denom.append(a[t][k]+A[k][w]+b[t+1][w]+E[w][O[t+1]])
+                denom = logsumexp(denom)
+                epsilon[t][i][j] =numerator-denom
+        gamma.append({})
+        epsilon.append({'+':{'+':0,'-':0},'-':{'+':0,'-':0}})
+    margGamma = []
+    margEpsilon = []
+    for i in states:
+        for j in states:
+            for t in range(T-1):
+                margGamma.append(gamma[t][i])
+                margEpsilon.append(epsilon[t][i][j])
+            A[i][j] = logsumexp(margEpsilon)-logsumexp(margGamma)
+            margGamma = []
+            margEpsilon = []
+    return A
+
+# ???
+
+def hsmmViterbi(O,A,E,states,pi):
+    return None

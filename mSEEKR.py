@@ -11,7 +11,7 @@ import pickle
 from math import log
 import pandas as pd
 from operator import itemgetter
-
+import time
 ''' hmmCalc
 Run several functions including viterbi algorithm, log-likelihood, and generate output dataframes
 Input: fasta file information
@@ -58,7 +58,6 @@ alphabet = [letter for letter in args.a]
 kVals = args.k.split(',')
 args.a = args.a.upper()
 model = args.model
-
 if not model.endswith('/'):
     model +='/'
 for kVal in kVals:
