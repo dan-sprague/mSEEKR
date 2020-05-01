@@ -42,3 +42,6 @@ for k in [2,3,4,5]:
                     KL = entropy(qH,rH)
                     print(KL)
                     1/0
+
+
+d =
