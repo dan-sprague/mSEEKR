@@ -46,7 +46,7 @@ conda install -c anaconda cython
   1. Curate unique fasta files for queries and null model before hand
   2. Use the following command
 ```
-  python kmers.py --fasta ./fastaFiles/mouseA.fa -k 2,3,4 --name mouseA -n 3 --dir ./counts/
+  python kmers.py --fasta ./fastaFiles/mA.fa -k 2,3,4 --name mouseA -n 3 --dir ./counts/
   python kmers.py --fasta ./fastaFiles/gencode.vM17.lncRNA_transcripts.fa -k 2,3,4 --name mm10Trscpts -n 3 --dir ./counts/
 ```
 
@@ -70,6 +70,7 @@ conda install -c anaconda cython
   0. Count k-mers for queries and null before proceeding  
   1. Run the following command
 ```
+  mv *skr counts/
   python train.py --query ./counts/mouseA.skr --null ./counts/mm10Trscpts.skr -k 2,3,4 --qPrefix mouseA --nPrefix mm10Trscpts --qT .9999 --nT .9999 --dir ./markovModels/
 ```
 
