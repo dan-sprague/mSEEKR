@@ -132,6 +132,8 @@ def formatHits(groupedHits,k,tSeq):
     ends = np.array([int(c.split(':')[1]) for c in seqHitCoords])
     return seqHits,starts,ends
 
+# Calculate a markov transition matrix of arbitrary order P(x_n | x_(n-1),...,x_(n-k))
+
 def transitionMatrix(kmers,k,alphabet):
     states = np.zeros((4**(int(k)-1), 4), dtype=np.float64)
     stateKmers = [''.join(p) for p in product(alphabet,repeat=k-1)]
