@@ -40,12 +40,6 @@ Output example: ['---','++','------','+','-------',...]
 def groupHMM(seq):
     return [''.join(list(g)) for k,g in groupby(seq,key=Key())]
 
-''' kmersWithAmbigIndex
-Return list of kmers, indices of k-mers without ambiguity, and indices of those
-with ambiguity
-Input: string
-Output: List of string, list of indices, list of indices
-'''
 
 def hitOutput(seqHits,starts,ends,k,E,tHead,tSeq):
     info = list(zip(seqHits,starts,ends))
@@ -62,18 +56,14 @@ def hitOutput(seqHits,starts,ends,k,E,tHead,tSeq):
 
     return df
 
-def transcriptOutput(seqHits,starts,ends,k,E,tHead,tSeq):
 
-    sumHits = LLR(seqHits,k,E)
-    lens = ends-starts # lengths of individual hits
-    df = pd.DataFrame([np.sum(sumHits)]) # sum of hits
-    df['totalLenHits'] = (np.sum(lens)) # sum of all hit lengths
-    df['fracTranscriptHit'] = df['totalLenHits']/len(tSeq) # fraction of transcript that is hit
-    df['longestHit'] = np.max(lens) # longest HMM hit
-    df['seqName'] = tHead
-    df.columns = ['sumLLR','totalLenHits','fracTranscriptHit','longestHit','seqName']
+''' kmersWithAmbigIndex
+Return list of kmers, indices of k-mers without ambiguity, and indices of those
+with ambiguity
+Input: string
+Output: List of string, list of indices, list of indices
+'''
 
-    return df
 def kmersWithAmbigIndex(tSeq,k):
     O = [tSeq[i:i+k].upper() for i in range(0,len(tSeq)-k+1)]
     O = [o for o in O if 'N' not in o]
@@ -114,25 +104,17 @@ def LLR(hits,k,E):
 # P(S,L) = P(S|L)*P(L)
 '''
 
+def pScore(S,L):
+    return None 
 
-def getFwd(seqHits,A,pi,states,E,k,alphabet):
-    fwdPs = []
-    for hit in seqHits:
-        O = [hit[i:i+k].upper() for i in range(0,len(hit)-k+1)]
-        O = [o for o in O if 'N' not in o]
-        '''
-        forward algorithm to calculate log P(O|HMM)
-        '''
-        fP = fwd(O,A,pi,states,E,k,alphabet)
-        fwdPs.append(fP)
-    return fwdPs
-
+'''
+# Formats the hmm output as such:
+# [([0,1,2]),'---'),([3,4],'++'),([5],'-'),...]
+# Grouping HMM states with their correct index in the list of k-mers
+'''
 def formatHits(groupedHits,k,tSeq):
     idx = 0
     indexGroupHits = []
-    # Loop below formats the hmm output as such:
-    # [([0,1,2]),'---'),([3,4],'++'),([5],'-'),...]
-    # Grouping HMM states with their correct index in the list of k-mers
     for i,group in enumerate(groupedHits):
         indexGroupHits.append([])
         for kmer in group:
@@ -162,17 +144,6 @@ def transitionMatrix(kmers,k,alphabet):
             for j, nextState in enumerate(alphabet):
                 states[i, j] = kmers[currState+nextState] / float(tot)
     return states
-
-# calculate nucleotide content of a sequence... unused now
-def nucContent(nullSeqs,alphabet):
-    seqs = ''.join(nullSeqs)
-    seqs = seqs.upper()
-    freq = [seqs.count(nt)/len(seqs) for nt in alphabet]
-    return dict(zip(alphabet,freq))
-
-# Calculate the log2 odds table between two matrices
-def logLTbl(q,null):
-    return np.log2(q) - np.log2(null)
 
 '''
 HMM: Generate dictionaries containing information necessary to perform the viterbi algorithm
