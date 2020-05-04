@@ -31,15 +31,9 @@ def hmmCalc(data):
 
     # Return sequences of HMM hits, and their start and end locations in the original sequence
     seqHits,starts,ends = corefunctions.formatHits(groupedHits,k,tSeq)
-    if (seqHits) and (not args.wt):
+    if (seqHits):
         df = corefunctions.hitOutput(seqHits,starts,ends,k,E,tHead,tSeq)
         return tHead,df
-    # Alternative output (transcript by transcript)
-    elif (seqHits) and (args.wt):
-        df = corefunctions.transcriptOutput(seqHits,starts,ends,k,E,tHead,tSeq)
-        return tHead,df
-    else:
-        return tHead,None
 
 
 parser = argparse.ArgumentParser()
@@ -51,7 +45,6 @@ parser.add_argument('--prefix',type=str,help='String, Output file prefix;default
 parser.add_argument('-a',type=str,help='String, Alphabet to generate k-mers (e.g. ATCG); default=ATCG',default='ATCG')
 parser.add_argument('-n',type=int,help='Integer 1 <= n <= max(cores), Number of processor cores to use; default = 1. This scales with the number of sequence comparisons in --db',default=1)
 parser.add_argument('--fasta',action='store_true',help='FLAG: print sequence of hit, ignored if --wt is passed')
-parser.add_argument('--wt',action='store_true',help='FLAG: If passed, return total log-likelihood over all hits in a fasta entry')
 args = parser.parse_args()
 
 args.a = args.a.upper()
