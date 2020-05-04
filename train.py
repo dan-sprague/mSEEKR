@@ -1,5 +1,4 @@
 import corefunctions
-import coreStats
 import argparse
 import itertools
 import numpy as np
