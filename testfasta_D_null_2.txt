@@ -1,0 +1,2 @@
+	Start	End	Length	kmerLLR	seqName
+0	1123	13915	12792	384.68001276596624	>Koala_Rsx
