@@ -273,3 +273,63 @@ def fwd(O,A,pi,states,E,k,alphabet):
         fwdP.append(a[-1][state])
     fwdP = logsumexp(fwdP)
     return fwdP
+    
+'''
+Backward probabilties
+'''
+
+def bkw(O,A,pi,states,E):
+    b=[{}]
+    N = len(O)
+
+    for i in states:
+        b[0][i] = 0
+
+    for n in range(1,N):
+        b.append({})
+        for i in states:
+            sumTerm = []
+            for j in states:
+                s = b[n-1][j]+A[i][j]+E[j][O[N-n]]
+                sumTerm.append(s)
+            P = logsumexp(sumTerm)
+            b[n][i]= P
+    b = b[::-1]
+    return b
+
+'''
+
+Baum-Welch EM parameter updates
+
+This is a custom implementation that only updates the transition matrix
+
+'''
+def update(a,b,O,states,A,E):
+    gamma = [{}]
+    epsilon = [{'+':{'+':0,'-':0},'-':{'+':0,'-':0}}]
+    T = len(O)
+    for t in range(T-1):
+        for i in states:
+            norm = logsumexp(a[t][i]+b[t][i])
+            gamma[t][i]=a[t][i]+b[t][i]-norm
+            for j in states:
+                numerator = a[t][i]+A[i][j]+b[t+1][j]+E[j][O[t+1]]
+                denom = []
+                for k in states:
+                    for w in states:
+                        denom.append(a[t][k]+A[k][w]+b[t+1][w]+E[w][O[t+1]])
+                denom = logsumexp(denom)
+                epsilon[t][i][j] =numerator-denom
+        gamma.append({})
+        epsilon.append({'+':{'+':0,'-':0},'-':{'+':0,'-':0}})
+    margGamma = []
+    margEpsilon = []
+    for i in states:
+        for j in states:
+            for t in range(T-1):
+                margGamma.append(gamma[t][i])
+                margEpsilon.append(epsilon[t][i][j])
+            A[i][j] = logsumexp(margEpsilon)-logsumexp(margGamma)
+            margGamma = []
+            margEpsilon = []
+    return A
