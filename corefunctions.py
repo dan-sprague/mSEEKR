@@ -3,8 +3,7 @@ from itertools import product
 from itertools import groupby
 from scipy.special import logsumexp
 import pandas as pd
-from scipy.stats import norm
-from scipy.stats import nbinom
+
 
 ''' Key for itertools groupby
     Alters flag when sequence changes from one condition to another
@@ -40,6 +39,12 @@ Output example: ['---','++','------','+','-------',...]
 def groupHMM(seq):
     return [''.join(list(g)) for k,g in groupby(seq,key=Key())]
 
+''' kmersWithAmbigIndex
+Return list of kmers, indices of k-mers without ambiguity, and indices of those
+with ambiguity
+Input: string
+Output: List of string, list of indices, list of indices
+'''
 
 def hitOutput(seqHits,starts,ends,k,E,tHead,tSeq):
     info = list(zip(seqHits,starts,ends))
@@ -56,14 +61,18 @@ def hitOutput(seqHits,starts,ends,k,E,tHead,tSeq):
 
     return df
 
+def transcriptOutput(seqHits,starts,ends,k,E,tHead,tSeq):
 
-''' kmersWithAmbigIndex
-Return list of kmers, indices of k-mers without ambiguity, and indices of those
-with ambiguity
-Input: string
-Output: List of string, list of indices, list of indices
-'''
+    sumHits = LLR(seqHits,k,E)
+    lens = ends-starts # lengths of individual hits
+    df = pd.DataFrame([np.sum(sumHits)]) # sum of hits
+    df['totalLenHits'] = (np.sum(lens)) # sum of all hit lengths
+    df['fracTranscriptHit'] = df['totalLenHits']/len(tSeq) # fraction of transcript that is hit
+    df['longestHit'] = np.max(lens) # longest HMM hit
+    df['seqName'] = tHead
+    df.columns = ['sumLLR','totalLenHits','fracTranscriptHit','longestHit','seqName']
 
+    return df
 def kmersWithAmbigIndex(tSeq,k):
     O = [tSeq[i:i+k].upper() for i in range(0,len(tSeq)-k+1)]
     O = [o for o in O if 'N' not in o]
@@ -93,28 +102,24 @@ def LLR(hits,k,E):
         arr[i] = llr
     return arr
 
-'''
-# Calculate the joint probability of a hit with length L and score S
-# In an hmm the distribution of consecutive states follows a geometric distribution
-# Score S represents a sum of random variables that depends on the length of the hit
-# In particular, it is the variance that scales most with L as the mean is usually close to zero
+def getFwd(seqHits,A,pi,states,E,k,alphabet):
+    fwdPs = []
+    for hit in seqHits:
+        O = [hit[i:i+k].upper() for i in range(0,len(hit)-k+1)]
+        O = [o for o in O if 'N' not in o]
+        '''
+        forward algorithm to calculate log P(O|HMM)
+        '''
+        fP = fwd(O,A,pi,states,E,k,alphabet)
+        fwdPs.append(fP)
+    return fwdPs
 
-# Therefore
-
-# P(S,L) = P(S|L)*P(L)
-'''
-
-def pScore(S,L):
-    return None 
-
-'''
-# Formats the hmm output as such:
-# [([0,1,2]),'---'),([3,4],'++'),([5],'-'),...]
-# Grouping HMM states with their correct index in the list of k-mers
-'''
 def formatHits(groupedHits,k,tSeq):
     idx = 0
     indexGroupHits = []
+    # Loop below formats the hmm output as such:
+    # [([0,1,2]),'---'),([3,4],'++'),([5],'-'),...]
+    # Grouping HMM states with their correct index in the list of k-mers
     for i,group in enumerate(groupedHits):
         indexGroupHits.append([])
         for kmer in group:
@@ -132,8 +137,6 @@ def formatHits(groupedHits,k,tSeq):
     ends = np.array([int(c.split(':')[1]) for c in seqHitCoords])
     return seqHits,starts,ends
 
-# Calculate a markov transition matrix of arbitrary order P(x_n | x_(n-1),...,x_(n-k))
-
 def transitionMatrix(kmers,k,alphabet):
     states = np.zeros((4**(int(k)-1), 4), dtype=np.float64)
     stateKmers = [''.join(p) for p in product(alphabet,repeat=k-1)]
@@ -146,6 +149,17 @@ def transitionMatrix(kmers,k,alphabet):
             for j, nextState in enumerate(alphabet):
                 states[i, j] = kmers[currState+nextState] / float(tot)
     return states
+
+# calculate nucleotide content of a sequence... unused now
+def nucContent(nullSeqs,alphabet):
+    seqs = ''.join(nullSeqs)
+    seqs = seqs.upper()
+    freq = [seqs.count(nt)/len(seqs) for nt in alphabet]
+    return dict(zip(alphabet,freq))
+
+# Calculate the log2 odds table between two matrices
+def logLTbl(q,null):
+    return np.log2(q) - np.log2(null)
 
 '''
 HMM: Generate dictionaries containing information necessary to perform the viterbi algorithm
@@ -216,9 +230,9 @@ def viterbi(O,A,E,states,pi):
         ukprev.append({})
         for state in states:
             prevSelState = states[0] # this is just an arbitrary choice to start checking at the start of the list
-            currMaxProb = A[prevSelState][state] + uk[n-1][prevSelState] # probability function
+            currMaxProb = A[state][prevSelState] + uk[n-1][prevSelState] # probability function
             for pState in states[1:]: # now check the other states...
-                currProb = A[pState][state] + uk[n-1][pState]
+                currProb = A[state][pState] + uk[n-1][pState]
                 if currProb > currMaxProb: # if larger then the first one we checked, we have a new winner, store and continue loop and repeat
                     currMaxProb = currProb
                     prevSelState = pState
@@ -239,88 +253,23 @@ def viterbi(O,A,E,states,pi):
     backtrack = backtrack[::-1] # reverse the order
     return backtrack
 
-'''
-Forward probabilties
-'''
-
-def fwd(O,A,pi,states,E):
+def fwd(O,A,pi,states,E,k,alphabet):
     a = [{}]
     N = len(O)
-    for i in states:
-        a[0][i] = pi[i]+E[i][O[0]]
+    kmers = [''.join(p) for p in product(alphabet,repeat=k)]
+    for state in states:
+        a[0][state] = pi[state]+E[state][O[0]]
     for n in range(1,N):
         a.append({})
-        for i in states:
+        for state in states:
             P=[]
-            for j in states:
-                P.append(a[n-1][j]+A[j][i])
-            margP = logsumexp(P)+E[i][O[n]]
-            a[n][i] = margP
-    return a
-
-'''
-Backward probabilties
-'''
-
-def bkw(O,A,pi,states,E):
-    b=[{}]
-    N = len(O)
-
-    for i in states:
-        b[0][i] = 0
-
-    for n in range(1,N):
-        b.append({})
-        for i in states:
-            sumTerm = []
-            for j in states:
-                s = b[n-1][j]+A[i][j]+E[j][O[N-n]]
-                sumTerm.append(s)
-            P = logsumexp(sumTerm)
-            b[n][i]= P
-    b = b[::-1]
-    return b
-
-'''
-
-Baum-Welch EM parameter updates 
-
-This is a custom implementation that only updates the transition matrix
-
-'''
-def update(a,b,O,states,A,E):
-    gamma = [{}]
-    epsilon = [{'+':{'+':0,'-':0},'-':{'+':0,'-':0}}]
-    T = len(O)
-    for t in range(T-1):
-        for i in states:
-            norm = logsumexp(a[t][i]+b[t][i])
-            gamma[t][i]=a[t][i]+b[t][i]-norm
-            for j in states:
-                numerator = a[t][i]+A[i][j]+b[t+1][j]+E[j][O[t+1]]
-                denom = []
-                for k in states:
-                    for w in states:
-                        denom.append(a[t][k]+A[k][w]+b[t+1][w]+E[w][O[t+1]])
-                denom = logsumexp(denom)
-                epsilon[t][i][j] =numerator-denom
-        gamma.append({})
-        epsilon.append({'+':{'+':0,'-':0},'-':{'+':0,'-':0}})
-    margGamma = []
-    margEpsilon = []
-    for i in states:
-        for j in states:
-            for t in range(T-1):
-                margGamma.append(gamma[t][i])
-                margEpsilon.append(epsilon[t][i][j])
-            A[i][j] = logsumexp(margEpsilon)-logsumexp(margGamma)
-            margGamma = []
-            margEpsilon = []
-    return A
-
-# ???
-
-def hsmmViterbi(O,A,E,states,pi,D):
-
-    return None
-
+            naiveP = []
+            for pState in states:
+                P.append(a[n-1][pState]+A[state][pState] + E[state][O[n]])
+            P = logsumexp(P)
+            a[n][state] = P
+    fwdP = []
+    for state in states:
+        fwdP.append(a[-1][state])
+    fwdP = logsumexp(fwdP)
+    return fwdP
