@@ -347,10 +347,9 @@ def update(a,b,O,states,A,E):
     gamma = [{}]
     epsilon = [{'+':{'+':0,'-':0},'-':{'+':0,'-':0}}]
     T = len(O)
-    print(a)
     for t in range(T-1):
+        norm = logsumexp([a[t]['+']+b[t]['-'],a[t]['-']+b[t]['-']])
         for i in states:
-            norm = a[t][i]+b[t][i]
             gamma[t][i]=a[t][i]+b[t][i]-norm
             for j in states:
                 numerator = a[t][i]+A[i][j]+b[t+1][j]+E[j][O[t+1]]

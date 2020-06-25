@@ -20,8 +20,12 @@ Input:
     
 -k : K-mer value to use
 --db : Training sequences
---prior : Output of train.py in the mSEEKR pipeline, essentially, initial guesses for the transition parameters, 
+--prior : Path to binary file output by train.py in the mSEEKR pipeline, essentially, initial guesses for the transition parameters, 
     as well as trained values for the k-mer frequencies for query and null states
+
+    e.g. markovModels/D_null/2/hmm.mkv
+
+    
 --its : How many iterations of the BW algorithm to run (default=100)
     
 Output:
@@ -37,7 +41,7 @@ Output:
 parser = argparse.ArgumentParser()
 parser.add_argument("-k",type=int)
 parser.add_argument('--db',type=str,help='Path to fasta file containing training sequences')
-parser.add_argument('--prior',type=str)
+parser.add_argument('--prior',type=str,help='Path to binary .mkv file output from train.py (e.g. markovModels/D_null/2/hmm.mkv')
 parser.add_argument('--its',type=int,help='Iterations to do, default=100',default=100)
 args = parser.parse_args()
 
