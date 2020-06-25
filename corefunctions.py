@@ -253,6 +253,32 @@ def viterbi(O,A,E,states,pi):
     backtrack = backtrack[::-1] # reverse the order
     return backtrack
 
+'''
+The forward algorithm calculates the probability of being in state i at time t, given all observations from time 1 to t. 
+
+The forward algorithm is essentially identical to the Viterbi algorithm, with the major difference being that 
+at each time step, we sum up all probabilities rather than choosing the maximizing transition.
+
+The forward algorithm is also crucial for calculatating the likelihood of the observation given the entire model, i.e.
+
+P(Observed Sequence | Model) = sum probabilities at the end point (last observation) over all states, yielding the total probability
+of the observed sequence, given all current values of parameters. Sequences that better match the model will have higher probabilities
+than those that do not.
+
+
+
+Input: 
+A - transition matrix
+E - emission matrix
+pi - initial state probabilities
+states - list of states
+alphabet - lets of letters comprising alphabet (e.g. ATCG)
+O - observed sequence 
+
+Output: Dictionary containing probabilities at each time point
+
+'''
+
 def fwd(O,A,pi,states,E,k,alphabet):
     a = [{}]
     N = len(O)
@@ -276,6 +302,24 @@ def fwd(O,A,pi,states,E,k,alphabet):
     
 '''
 Backward probabilties
+
+Yields the probability of being in state i at time t, given all the observations for time t+1 to T,
+where T is the last time point.
+
+Similar to the foward algorithm, but moves in the opposite direction, considering the remainder of the sequence 
+after the current observation.
+
+Backward algorithm at time t = 1 will equal forward algorithm at time t = T
+
+The forward and backward algorithms together calculate the 'smoothed probability' of being in state i at time t,
+considering the entire sequence rather than prior and posterior information to the current observation. 
+
+
+  Forward(t,state=i) * Backward(t,state=i)
+------------------------------------------- = P(observation(t),state = i)
+SUM(Foward(t,state=i) + Backward(t,state=i))
+
+
 '''
 
 def bkw(O,A,pi,states,E):
