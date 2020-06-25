@@ -85,4 +85,5 @@ for i in tqdm(range(args.its)):
   
 # Data dictionary tracks the iterations of BW algorithm for manual inspection if necessary 
 
-pickle.dump(data,open(f'./{args.prior}_{k}_bwMLE.p','wb'))
+pickle.dump(data,open(f'./{args.prior}_BWiters.p','wb'))
+pickle.dump({'A':A,'E':E,'pi':pi,'states':states},open(f'{args.prior}','wb'))
