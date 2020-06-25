@@ -279,10 +279,9 @@ Output: Dictionary containing probabilities at each time point
 
 '''
 
-def fwd(O,A,pi,states,E,k,alphabet):
+def fwd(O,A,pi,states,E):
     a = [{}]
     N = len(O)
-    kmers = [''.join(p) for p in product(alphabet,repeat=k)]
     for state in states:
         a[0][state] = pi[state]+E[state][O[0]]
     for n in range(1,N):
@@ -294,11 +293,7 @@ def fwd(O,A,pi,states,E,k,alphabet):
                 P.append(a[n-1][pState]+A[state][pState] + E[state][O[n]])
             P = logsumexp(P)
             a[n][state] = P
-    fwdP = []
-    for state in states:
-        fwdP.append(a[-1][state])
-    fwdP = logsumexp(fwdP)
-    return fwdP
+    return a
     
 '''
 Backward probabilties
@@ -352,9 +347,10 @@ def update(a,b,O,states,A,E):
     gamma = [{}]
     epsilon = [{'+':{'+':0,'-':0},'-':{'+':0,'-':0}}]
     T = len(O)
+    print(a)
     for t in range(T-1):
         for i in states:
-            norm = logsumexp(a[t][i]+b[t][i])
+            norm = a[t][i]+b[t][i]
             gamma[t][i]=a[t][i]+b[t][i]-norm
             for j in states:
                 numerator = a[t][i]+A[i][j]+b[t+1][j]+E[j][O[t+1]]
