@@ -106,6 +106,9 @@ Parameters:
     .
     .
 
+## (OPTIONAL) Optimize transition parameters using the B-W Algorithm
+
+
 
 ## Find HMM state path through sequences of interest
 
