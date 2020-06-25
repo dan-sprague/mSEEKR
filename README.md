@@ -93,20 +93,38 @@ Parameters:
     |
     |--- mouseA_mouseNull
     |------- 2
-    |------------- model.hmm
-    |------------- model.mkv
+    |------------- hmm.mkv
     |------- 3
-    |------------- model.hmm
-    |------------- model.mkv
+    |------------- hmm.mkv
     |------- 4
-    |------------- model.hmm
-    |------------- model.mkv
+    |------------- hmm.mkv
     |--- mouseB_mouseNull
     .
     .
     .
 
 ## (OPTIONAL) Optimize transition parameters using the B-W Algorithm
+This script will take the output .mkv output file from train.py and find an MLE for the transition parameters. 
+
+  1. Run the following command
+```
+  python bw.py -k 4 --db ./fastaFiles/xist.fa --prior markovModels/mouseA_mm10Trscpts/4/hmm.mkv --its 3
+```
+
+The above command takes the HMM trained on repeat A at k =4, and uses Xist to find an MLE for the transition parameters. More than one sequence can be provided as training, if a multi-entry FASTA file is provided. 
+
+Parameters:
+
+1. -k : value of k for k-mers
+2. --db : path to FASTA file to optimize parameters on
+3. --prior : hmm.mkv file output by train.py
+4. --its : number of iterations of the baum-welch algorithm to run
+
+
+Output:
+1. Replaces the file passed as --prior with an updated version that contains the MLE transition matrix
+2. A file containing the trajectory of the transition parameters over each loop of the BW algorithm, check this for convergence
+
 
 
 
