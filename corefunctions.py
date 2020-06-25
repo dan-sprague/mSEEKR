@@ -315,11 +315,11 @@ The forward and backward algorithms together calculate the 'smoothed probability
 considering the entire sequence rather than prior and posterior information to the current observation. 
 
 
-  Forward(t,state=i) * Backward(t,state=i)
-------------------------------------------- = P(observation(t),state = i)
-SUM(Foward(t,state=i) + Backward(t,state=i))
+      Forward(t,state=i) * Backward(t,state=i)
+---------------------------------------------------- = P(observation(t),state = i)
+     SUM(Foward(t,state=i)*Backward(t,state=i))
 
-
+Where the sum is taken over all states i in {query,null}
 '''
 
 def bkw(O,A,pi,states,E):
