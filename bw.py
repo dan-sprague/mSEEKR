@@ -9,7 +9,7 @@ from scipy.special import logsumexp
 from collections import defaultdict
 
 
-```
+'''
 Author: Daniel Sprague
 Calabrese Lab, Department of Pharmacology UNC Chapel Hill
 June 24, 2020
@@ -28,7 +28,7 @@ Output:
     
     A new .mkv python pickle file (binary) that contains the original k-mer frequencies and updated transition matrix 
 
-```
+'''
 
 
 # Initiate command line arguments
@@ -53,12 +53,12 @@ O,oIdx,nBP = corefunctions.kmersWithAmbigIndex(seqs,k)
 # Load in train.py output 
 hmm = pickle.load(open(args.prior,'rb'))
 
-```
+'''
 A - transition matrix (dictionary)
 E - emission matrix (dictionary)
 pi - initial state probabilities (always 50/50)
 states - list of states (query,null)
-```
+'''
 A,E,pi,states = hmm['A'],hmm['E'],hmm['pi'],hmm['states']
 
 data = defaultdict(list)
