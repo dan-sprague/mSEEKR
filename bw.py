@@ -66,7 +66,8 @@ states - list of states (query,null)
 A,E,pi,states = hmm['A'],hmm['E'],hmm['pi'],hmm['states']
 
 data = defaultdict(list)
-
+data['alpha'].append(A['+']['+'])
+data['beta'].append(A['-']['-'])
 # Perform --its number of baum-welch iterations
 # BW converges to a LOCAL MINIMUM -- best to perform a grid search (run this script on a variety of different --priors)
 for i in tqdm(range(args.its)):
@@ -89,5 +90,9 @@ for i in tqdm(range(args.its)):
   
 # Data dictionary tracks the iterations of BW algorithm for manual inspection if necessary 
 
-pickle.dump(data,open(f'./{args.prior}_BWiters.p','wb'))
+arr = np.array(list(data.values()))
+arr = 2**arr
+arr = arr.T
+
+np.savetxt('./hmm_BWiters.txt',arr,fmt='%.8f')
 pickle.dump({'A':A,'E':E,'pi':pi,'states':states},open(f'{args.prior}','wb'))
