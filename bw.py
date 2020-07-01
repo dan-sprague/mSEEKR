@@ -100,7 +100,6 @@ arr = np.array(list(data.values()))
 arr = 2**arr
 arr = arr.T
 
-np.savetxt('./hmm_BWiters.txt',arr,fmt='%.8f')
 if args.createfile:
     bn = os.path.basename(args.prior)
     bn = bn.split('.')[0]
