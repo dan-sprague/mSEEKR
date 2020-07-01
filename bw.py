@@ -99,7 +99,7 @@ for i in tqdm(range(args.its)):
 arr = np.array(list(data.values()))
 arr = 2**arr
 arr = arr.T
-
+np.savetxt(os.path.dirname(args.prior) +'/hmm_BWparameters.txt',arr,fmt='%.9f')
 if args.createfile:
     bn = os.path.basename(args.prior)
     bn = bn.split('.')[0]
