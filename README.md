@@ -108,7 +108,7 @@ This script will take the output .mkv output file from train.py and find an MLE 
 
   1. Run the following command
 ```
-  python bw.py -k 4 --db ./fastaFiles/xist.fa --prior markovModels/mouseA_mm10Trscpts/4/hmm.mkv --its 3
+  python bw.py -k 4 --db ./fastaFiles/xist.fa --prior markovModels/mouseA_mm10Trscpts/4/hmm.mkv --its 3 -cf
 ```
 
 The above command takes the HMM trained on repeat A at k =4, and uses Xist to find an MLE for the transition parameters. More than one sequence can be provided as training, if a multi-entry FASTA file is provided. 
@@ -119,7 +119,7 @@ Parameters:
 2. --db : path to FASTA file to optimize parameters on
 3. --prior : hmm.mkv file output by train.py
 4. --its : number of iterations of the baum-welch algorithm to run
-
+5. -cf : FLAG, pass this argument to create a new file in the same directory as --prior 
 
 Output:
 1. Replaces the file passed as --prior with an updated version that contains the MLE transition matrix
@@ -132,14 +132,14 @@ Output:
 
   1. Run the following command
 ```
-  python mSEEKR.py --db ./fastaFiles/mm10kcn.fa -n 8 --prefix test --model ./markovModels/mouseA_mm10Trscpts -k 4 --fasta
+  python mSEEKR.py --db ./fastaFiles/mm10kcn.fa -n 8 --prefix kcn_queryMouseA --model ./markovModels/mouseA_mm10Trscpts/4/hmm.mkv -k 4 --fasta
 ```
 
   Parameters
 
   1. --db : sequences of interest to run the HMM on
-  2. --model : path to directory containing models (ie /markovModels/query_null/)
+  2. --model : Path to .mkv file output from train.py or bw.py
   3. -k : value of k to use in the analysis (must have been specified in training)
   4. -n : Number of processing cores to use. Scales with size of fasta file (# of entries, not sequence length)
-  5. --prefix : experiment prefix name
+  5. --prefix : file name for output, useful to include information about the experiment
   
