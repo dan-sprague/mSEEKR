@@ -43,8 +43,13 @@ parser.add_argument("-k",type=int)
 parser.add_argument('--db',type=str,help='Path to fasta file containing training sequences')
 parser.add_argument('--prior',type=str,help='Path to binary .mkv file output from train.py (e.g. markovModels/D_null/2/hmm.mkv')
 parser.add_argument('-cf','--createfile',action='store_true',help='Create new file rather than overwrite')
-parser.add_argument('--its',type=int,help='Iterations to do, default=100',default=100)
+parser.add_argument('--its',type=int,help='Iterations to do, default=100',default=20)
+
 args = parser.parse_args()
+
+assert args.its > 0, 'Please provide an integer greater than or equal to 1'
+assert args.k > 0, 'Please provide an integer greater than or equal to 1'
+
 
 
 fa = Reader(args.db)
@@ -100,6 +105,7 @@ if args.createfile:
     bn = os.path.basename(args.prior)
     bn = bn.split('.')[0]
     bn+='_MLE'
+    bn = os.path.dirname(args.prior) +'/'+ bn
     pickle.dump({'A':A,'E':E,'pi':pi,'states':states},open(f'{bn}.mkv','wb'))
 
 pickle.dump({'A':A,'E':E,'pi':pi,'states':states},open(f'{args.prior}','wb'))
