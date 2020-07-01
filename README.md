@@ -132,7 +132,7 @@ Output:
 
   1. Run the following command
 ```
-  python mSEEKR.py --db ./fastaFiles/mm10kcn.fa -n 8 --prefix kcn_queryMouseA --model ./markovModels/mouseA_mm10Trscpts/4/hmm.mkv -k 4 --fasta
+  python mSEEKR.py --db ./fastaFiles/mm10kcn.fa -n 8 --prefix kcn_queryMouseA --model ./markovModels/mouseA_mm10Trscpts/4/hmm_MLE.mkv -k 4 --fasta
 ```
 
   Parameters
