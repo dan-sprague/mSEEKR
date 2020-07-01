@@ -7,7 +7,7 @@ import pickle
 from tqdm import tqdm as tqdm
 from scipy.special import logsumexp
 from collections import defaultdict
-
+import os
 
 '''
 Author: Daniel Sprague
@@ -42,6 +42,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-k",type=int)
 parser.add_argument('--db',type=str,help='Path to fasta file containing training sequences')
 parser.add_argument('--prior',type=str,help='Path to binary .mkv file output from train.py (e.g. markovModels/D_null/2/hmm.mkv')
+parser.add_argument('-cf','--createfile',action='store_true',help='Create new file rather than overwrite')
 parser.add_argument('--its',type=int,help='Iterations to do, default=100',default=100)
 args = parser.parse_args()
 
@@ -95,4 +96,10 @@ arr = 2**arr
 arr = arr.T
 
 np.savetxt('./hmm_BWiters.txt',arr,fmt='%.8f')
+if args.createfile:
+    bn = os.path.basename(args.prior)
+    bn = bn.split('.')[0]
+    bn+='_MLE'
+    pickle.dump({'A':A,'E':E,'pi':pi,'states':states},open(f'{bw}.mkv','wb'))
+    
 pickle.dump({'A':A,'E':E,'pi':pi,'states':states},open(f'{args.prior}','wb'))

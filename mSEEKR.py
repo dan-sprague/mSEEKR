@@ -43,57 +43,52 @@ def hmmCalc(data):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--model",type=str,help='Path to directory containing hmm models from train.py')
-parser.add_argument("-k",type=str,help='Comma delimited string, values of k to use')
+parser.add_argument("--model",type=str,help='Path to .mkv file output from train.py or bw.py')
+parser.add_argument("-k",type=int,help='Value of k to use')
 parser.add_argument('--db',type=str,help='Path to fasta file with sequences to calculate similarity score')
-parser.add_argument('--prefix',type=str,help='String, Output file prefix;default=None')
+parser.add_argument('--prefix',type=str,help='String, Output file name;default=None')
 #parser.add_argument('--bkg',type=str,help='Path to fasta file from which to calculate background nucleotide frequencies, if not passed default is uniform',default=None)
 parser.add_argument('-a',type=str,help='String, Alphabet to generate k-mers (e.g. ATCG); default=ATCG',default='ATCG')
 parser.add_argument('-n',type=int,help='Integer 1 <= n <= max(cores), Number of processor cores to use; default = 1. This scales with the number of sequence comparisons in --db',default=1)
 parser.add_argument('--fasta',action='store_true',help='FLAG: print sequence of hit, ignored if --wt is passed')
 parser.add_argument('--wt',action='store_true',help='FLAG: If passed, return total log-likelihood over all hits in a fasta entry')
 args = parser.parse_args()
+
+
 alphabet = [letter for letter in args.a]
 #Loop over values of k
-kVals = args.k.split(',')
 args.a = args.a.upper()
 model = args.model
 
-if not model.endswith('/'):
-    model +='/'
-for kVal in kVals:
-    kDir = model+kVal+'/'
-    modelName = model.split('/')[-2]
-    # Check if file exists and open if so, else skip this iteration of the loop
-    try:
-        hmm = pickle.load(open(kDir+'hmm.mkv','rb'))
-    except:
-        print(f'Value of k={kVal} not found, skipping...')
-        continue
-    # Explicitly determine k from the size of the log matrix and the size of the alphabet used to generate it
-    k = int(log(len(hmm['E']['+'].keys()),len(args.a)))
-    kmers = [''.join(p) for p in product(alphabet,repeat=k)] # generate k-mers
-    target = Reader(args.db)
-    targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
-    targetMap = defaultdict(list)
-    #Pool processes onto number of CPU cores specified by the user
-    with pool.Pool(args.n) as multiN:
-        jobs = multiN.starmap(hmmCalc,product(*[list(zip(targetHeaders,targetSeqs))]))
-        dataDict = dict(jobs)
-    #Check if no hits were found
-    # if not all(v == None for v in dataDict.values()):
-    if not args.wt:
-        dataFrames = pd.concat([df for df in dataDict.values() if not None])
-        dataFrames['Length'] = dataFrames['End'] - dataFrames['Start']
-        dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName','Sequence']]
-        if not args.fasta:
-            dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName']]
-        dataFrames.sort_values(by='kmerLLR',ascending=False,inplace=True)
-        dataFrames.reset_index(inplace=True,drop=True)
-        dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')
-    elif args.wt:
-        dataFrames = pd.concat([df for df in dataDict.values() if not None])
-        dataFrames = dataFrames[['seqName','sumLLR','totalLenHits','fracTranscriptHit','longestHit']]
-        dataFrames.sort_values(by='sumLLR',ascending=False,inplace=True)
-        dataFrames.reset_index(inplace=True,drop=True)
-        dataFrames.to_csv(f'./{args.prefix}_{modelName}_{k}.txt',sep='\t')
+hmm = pickle.load(open(model,'rb'))
+A,E,pi,states = hmm['A'],hmm['E'],hmm['pi'],hmm['states']
+
+# Explicitly determine k from the size of the log matrix and the size of the alphabet used to generate it
+k = int(log(len(hmm['E']['+'].keys()),len(args.a)))
+assert k == args.k, 'Value of k provided does not match supplied hmm file'
+
+kmers = [''.join(p) for p in product(alphabet,repeat=k)] # generate k-mers
+target = Reader(args.db)
+targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
+targetMap = defaultdict(list)
+#Pool processes onto number of CPU cores specified by the user
+with pool.Pool(args.n) as multiN:
+    jobs = multiN.starmap(hmmCalc,product(*[list(zip(targetHeaders,targetSeqs))]))
+    dataDict = dict(jobs)
+#Check if no hits were found
+# if not all(v == None for v in dataDict.values()):
+if not args.wt:
+    dataFrames = pd.concat([df for df in dataDict.values() if not None])
+    dataFrames['Length'] = dataFrames['End'] - dataFrames['Start']
+    dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName','Sequence']]
+    if not args.fasta:
+        dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName']]
+    dataFrames.sort_values(by='kmerLLR',ascending=False,inplace=True)
+    dataFrames.reset_index(inplace=True,drop=True)
+    dataFrames.to_csv(f'./{args.prefix}_{k}_viterbi.txt',sep='\t')
+elif args.wt:
+    dataFrames = pd.concat([df for df in dataDict.values() if not None])
+    dataFrames = dataFrames[['seqName','sumLLR','totalLenHits','fracTranscriptHit','longestHit']]
+    dataFrames.sort_values(by='sumLLR',ascending=False,inplace=True)
+    dataFrames.reset_index(inplace=True,drop=True)
+    dataFrames.to_csv(f'./{args.prefix}_{k}_viterbi.txt',sep='\t')
