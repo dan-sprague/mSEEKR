@@ -106,5 +106,5 @@ if args.createfile:
     bn+='_MLE'
     bn = os.path.dirname(args.prior) +'/'+ bn
     pickle.dump({'A':A,'E':E,'pi':pi,'states':states},open(f'{bn}.mkv','wb'))
-
-pickle.dump({'A':A,'E':E,'pi':pi,'states':states},open(f'{args.prior}','wb'))
+elif not args.createfile:
+    pickle.dump({'A':A,'E':E,'pi':pi,'states':states},open(f'{args.prior}','wb'))
