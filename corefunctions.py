@@ -286,6 +286,10 @@ def fwd(O,A,pi,states,E):
         a[0][state] = pi[state]+E[state][O[0]]
     for n in range(1,N):
         a.append({})
+        if '$' in O[n]:
+            for state in states:
+                a[n][state] = a[n-1][state]
+            continue
         for state in states:
             P=[]
             naiveP = []
@@ -326,6 +330,10 @@ def bkw(O,A,pi,states,E):
 
     for n in range(1,N):
         b.append({})
+        if '$' in O[N-n]:
+            for state in states:
+                b[n][state] = b[n-1][state]
+            continue
         for i in states:
             sumTerm = []
             for j in states:
@@ -348,19 +356,26 @@ def update(a,b,O,states,A,E):
     epsilon = [{'+':{'+':0,'-':0},'-':{'+':0,'-':0}}]
     T = len(O)
     for t in range(T-1):
-        norm = logsumexp([a[t]['+']+b[t]['-'],a[t]['-']+b[t]['-']])
-        for i in states:
-            gamma[t][i]=a[t][i]+b[t][i]-norm
-            for j in states:
-                numerator = a[t][i]+A[i][j]+b[t+1][j]+E[j][O[t+1]]
-                denom = []
-                for k in states:
-                    for w in states:
-                        denom.append(a[t][k]+A[k][w]+b[t+1][w]+E[w][O[t+1]])
-                denom = logsumexp(denom)
-                epsilon[t][i][j] =numerator-denom
         gamma.append({})
         epsilon.append({'+':{'+':0,'-':0},'-':{'+':0,'-':0}})
+        # Fix for appended multiple training sequences
+        if ('$' in O[t]) or ('$' in O[t+1]):
+            for state in states:
+                gamma[t][state] = gamma[t-1][state]
+                for jstate in states:
+                    epsilon[t][state][jstate] = epsilon[t-1][state][jstate] 
+        else:
+            norm = logsumexp([a[t]['+']+b[t]['-'],a[t]['-']+b[t]['-']])
+            for i in states:
+                gamma[t][i]=a[t][i]+b[t][i]-norm
+                for j in states:
+                    numerator = a[t][i]+A[i][j]+b[t+1][j]+E[j][O[t+1]]
+                    denom = []
+                    for k in states:
+                        for w in states:
+                            denom.append(a[t][k]+A[k][w]+b[t+1][w]+E[w][O[t+1]])
+                    denom = logsumexp(denom)
+                    epsilon[t][i][j] =numerator-denom
     margGamma = []
     margEpsilon = []
     for i in states:

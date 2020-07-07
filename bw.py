@@ -53,7 +53,7 @@ assert args.k > 0, 'Please provide an integer greater than or equal to 1'
 
 
 fa = Reader(args.db)
-seqs = fa.get_seqs()[0]
+seqs = '$'.join(fa.get_seqs())
 model = args.prior
 
 k = args.k
