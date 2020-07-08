@@ -130,11 +130,11 @@ def formatHits(groupedHits,k,tSeq):
     seqHitCoords = []
     for group in hits:
         if '+' in group[1]:
-            start,end = group[0][0],group[0][-1]+k+1 #convert k-mer coord to bp coord
+            start,end = group[0][0],group[0][-1]+k #convert k-mer coord to bp coord
             seqHitCoords.append(f'{start}:{end}')
             seqHits.append(tSeq[start:end])
     starts = np.array([int(c.split(':')[0]) for c in seqHitCoords])
-    ends = np.array([int(c.split(':')[1]) for c in seqHitCoords])
+    ends = np.array([int(c.split(':')[1])+1 for c in seqHitCoords])
     return seqHits,starts,ends
 
 def transitionMatrix(kmers,k,alphabet):
