@@ -365,7 +365,7 @@ def update(a,b,O,states,A,E):
                 for jstate in states:
                     epsilon[t][state][jstate] = epsilon[t-1][state][jstate] 
         else:
-            norm = logsumexp([a[t]['+']+b[t]['-'],a[t]['-']+b[t]['-']])
+            norm = logsumexp([a[t]['+']+b[t]['+'],a[t]['-']+b[t]['-']])
             for i in states:
                 gamma[t][i]=a[t][i]+b[t][i]-norm
                 for j in states:
