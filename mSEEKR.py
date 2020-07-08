@@ -31,13 +31,10 @@ def hmmCalc(data):
 
     # Return sequences of HMM hits, and their start and end locations in the original sequence
     seqHits,starts,ends = corefunctions.formatHits(groupedHits,k,tSeq)
-    if (seqHits) and (not args.wt):
+    if (seqHits):
         df = corefunctions.hitOutput(seqHits,starts,ends,k,E,tHead,tSeq)
         return tHead,df
     # Alternative output (transcript by transcript)
-    elif (seqHits) and (args.wt):
-        df = corefunctions.transcriptOutput(seqHits,starts,ends,k,E,tHead,tSeq)
-        return tHead,df
     else:
         return tHead,None
 
@@ -51,7 +48,6 @@ parser.add_argument('--prefix',type=str,help='String, Output file name;default=N
 parser.add_argument('-a',type=str,help='String, Alphabet to generate k-mers (e.g. ATCG); default=ATCG',default='ATCG')
 parser.add_argument('-n',type=int,help='Integer 1 <= n <= max(cores), Number of processor cores to use; default = 1. This scales with the number of sequence comparisons in --db',default=1)
 parser.add_argument('--fasta',action='store_true',help='FLAG: print sequence of hit, ignored if --wt is passed')
-parser.add_argument('--wt',action='store_true',help='FLAG: If passed, return total log-likelihood over all hits in a fasta entry')
 args = parser.parse_args()
 
 
@@ -77,18 +73,13 @@ with pool.Pool(args.n) as multiN:
     dataDict = dict(jobs)
 #Check if no hits were found
 # if not all(v == None for v in dataDict.values()):
-if not args.wt:
-    dataFrames = pd.concat([df for df in dataDict.values() if not None])
-    dataFrames['Length'] = dataFrames['End'] - dataFrames['Start']
-    dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName','Sequence']]
-    if not args.fasta:
-        dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName']]
-    dataFrames.sort_values(by='kmerLLR',ascending=False,inplace=True)
-    dataFrames.reset_index(inplace=True,drop=True)
-    dataFrames.to_csv(f'./{args.prefix}_{k}_viterbi.txt',sep='\t')
-elif args.wt:
-    dataFrames = pd.concat([df for df in dataDict.values() if not None])
-    dataFrames = dataFrames[['seqName','sumLLR','totalLenHits','fracTranscriptHit','longestHit']]
-    dataFrames.sort_values(by='sumLLR',ascending=False,inplace=True)
-    dataFrames.reset_index(inplace=True,drop=True)
-    dataFrames.to_csv(f'./{args.prefix}_{k}_viterbi.txt',sep='\t')
+
+
+dataFrames = pd.concat([df for df in dataDict.values() if not None])
+dataFrames['Length'] = dataFrames['End'] - dataFrames['Start']
+dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName','Sequence']]
+if not args.fasta:
+    dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName']]
+dataFrames.sort_values(by='kmerLLR',ascending=False,inplace=True)
+dataFrames.reset_index(inplace=True,drop=True)
+dataFrames.to_csv(f'./{args.prefix}_{k}_viterbi.txt',sep='\t')
