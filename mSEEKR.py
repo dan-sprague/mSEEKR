@@ -35,6 +35,7 @@ def hmmCalc(data):
         df = corefunctions.hitOutput(seqHits,starts,ends,k,E,tHead,tSeq)
         return tHead,df
     # Alternative output (transcript by transcript)
+
     else:
         return tHead,None
 

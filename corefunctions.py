@@ -134,7 +134,7 @@ def formatHits(groupedHits,k,tSeq):
             seqHitCoords.append(f'{start}:{end}')
             seqHits.append(tSeq[start:end])
     starts = np.array([int(c.split(':')[0]) for c in seqHitCoords])
-    ends = np.array([int(c.split(':')[1])+1 for c in seqHitCoords])
+    ends = np.array([int(c.split(':')[1]) for c in seqHitCoords])
     return seqHits,starts,ends
 
 def transitionMatrix(kmers,k,alphabet):
