@@ -1,2 +1,0 @@
-$ >opossum_rsx	[0.0, 0.9999123193371988, 0, 0.9999992168957437]
-Tile	bp Range	Sequence	Log-Likelihood	p-val

@@ -1,2 +1,0 @@
-$ >marmoset_xist	[0.0, 0, 0, 0.0]
-Tile	bp Range	Sequence	Log-Likelihood	p-val
