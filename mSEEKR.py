@@ -11,12 +11,18 @@ import pickle
 from math import log
 import pandas as pd
 from operator import itemgetter
+from scipy import stats
 
 ''' hmmCalc
 Run several functions including viterbi algorithm, log-likelihood, and generate output dataframes
 Input: fasta file information
 Output: dataframe object
 '''
+
+def bitscore(score,length,l,c):
+    return ((l*score) - (c*np.log(length))/np.log(2))
+
+
 def hmmCalc(data):
     tHead,tSeq = data
     O,oIdx,nBP = corefunctions.kmersWithAmbigIndex(tSeq,k)
@@ -58,8 +64,8 @@ args.a = args.a.upper()
 model = args.model
 
 hmm = pickle.load(open(model,'rb'))
-A,E,pi,states = hmm['A'],hmm['E'],hmm['pi'],hmm['states']
-
+A,E,pi,states,fit,l,c = hmm['A'],hmm['E'],hmm['pi'],hmm['states'],hmm['gp'],hmm['l'],hmm['c']
+GP = stats.genpareto(*fit)
 # Explicitly determine k from the size of the log matrix and the size of the alphabet used to generate it
 k = int(log(len(hmm['E']['+'].keys()),len(args.a)))
 assert k == args.k, 'Value of k provided does not match supplied hmm file'
@@ -79,8 +85,16 @@ with pool.Pool(args.n) as multiN:
 dataFrames = pd.concat([df for df in dataDict.values() if not None])
 dataFrames['Length'] = dataFrames['End'] - dataFrames['Start']
 dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName','Sequence']]
+bitScore = []
+for j,row in dataFrames.iterrows():
+    s = bitscore(row.kmerLLR,row.Length,l,c)
+    bitScore.append(s)
+dataFrames['bitScore'] = bitScore
+dataFrames = dataFrames[dataFrames.bitScore>0]
+dataFrames['p'] = GP.sf(dataFrames.bitScore.values)
+
 if not args.fasta:
-    dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName']]
+    dataFrames = dataFrames[['Start','End','Length','kmerLLR','bitScore','p','seqName']]
 dataFrames.sort_values(by='kmerLLR',ascending=False,inplace=True)
 dataFrames.reset_index(inplace=True,drop=True)
 dataFrames.to_csv(f'./{args.prefix}_{k}_viterbi.txt',sep='\t')
