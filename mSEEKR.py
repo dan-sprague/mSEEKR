@@ -77,7 +77,9 @@ with pool.Pool(args.n) as multiN:
 
 
 dataFrames = pd.concat([df for df in dataDict.values() if not None])
-dataFrames['Length'] = dataFrames['End'] - dataFrames['Start']
+dataFrames['Start']+=1 #1-start coordinates
+dataFrames['End']
+dataFrames['Length'] = dataFrames['End'] - dataFrames['Start'] +1
 dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName','Sequence']]
 if not args.fasta:
     dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName']]
