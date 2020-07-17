@@ -1,5 +1,7 @@
 # mSEEKR
 
+PROTOTYPE FOR PVAL CALCULATION -- train.py will fit a generalized pareto distribution to a monte carlo simulation of random sequences. Calculation of lambda and a fit to the log(n) expected score w.r.t. to length of the random sequence.
+
 This is a program for identifying regions of high similarity based on *k*-mer content to some set of query sequences, relative to a null background set of sequences.
 
 ## Dependencies
