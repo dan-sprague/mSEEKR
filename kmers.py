@@ -23,29 +23,33 @@ parser.add_argument('-n',type=int,help='Number of CPU cores. Each job correspond
 
 args = parser.parse_args()
 
-# Read in specified values of k, and the alphabet
-kVals = [int(i) for i in args.k.split(',')]
-a = args.a.upper()
 
-#SEEKR fasta reader module
-F = Reader(args.fasta)
-fS = F.get_seqs()
 
-#Join sequences together using $ delimiter character
-fString = '$'.join(fS).upper()
-lenFString = sum([len(i) for i in fS])
+if __name__ == '__main__':
 
-# Need to figure out how to deal with very long fasta files (~ 2-3X the size of the transcriptome in mice)
-# if lenFString >= 2147483647:
-#     fString='$'.join(fS[::10]).upper()
+    # Read in specified values of k, and the alphabet
+    kVals = [int(i) for i in args.k.split(',')]
+    a = args.a.upper()
 
-#Split jobs onto processors and call kmers.pyx cython file
-with pool.Pool(args.n) as multiN:
-    jobs = multiN.starmap(kmers.main,product(*[[fString],kVals,[a]]))
-    dataDict = dict(jobs)
+    #SEEKR fasta reader module
+    F = Reader(args.fasta)
+    fS = F.get_seqs()
 
-#Save data
-kDir = args.dir
-if not kDir.endswith('/'):
-    kDir+='/'
-pickle.dump(dataDict,open(f'{kDir}{args.name}.skr','wb'))
+    #Join sequences together using $ delimiter character
+    fString = '$'.join(fS).upper()
+    lenFString = sum([len(i) for i in fS])
+
+    # Need to figure out how to deal with very long fasta files (~ 2-3X the size of the transcriptome in mice)
+    # if lenFString >= 2147483647:
+    #     fString='$'.join(fS[::10]).upper()
+
+    #Split jobs onto processors and call kmers.pyx cython file
+    with pool.Pool(args.n) as multiN:
+        jobs = multiN.starmap(kmers.main,product(*[[fString],kVals,[a]]))
+        dataDict = dict(jobs)
+
+    #Save data
+    kDir = args.dir
+    if not kDir.endswith('/'):
+        kDir+='/'
+    pickle.dump(dataDict,open(f'{kDir}{args.name}.skr','wb'))
