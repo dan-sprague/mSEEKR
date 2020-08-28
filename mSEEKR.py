@@ -52,37 +52,39 @@ parser.add_argument('--fasta',action='store_true',help='FLAG: print sequence of 
 args = parser.parse_args()
 
 
-alphabet = [letter for letter in args.a]
-#Loop over values of k
-args.a = args.a.upper()
-model = args.model
+if __name__ == '__main__':
 
-hmm = pickle.load(open(model,'rb'))
-A,E,pi,states = hmm['A'],hmm['E'],hmm['pi'],hmm['states']
+    alphabet = [letter for letter in args.a]
+    #Loop over values of k
+    args.a = args.a.upper()
+    model = args.model
 
-# Explicitly determine k from the size of the log matrix and the size of the alphabet used to generate it
-k = int(log(len(hmm['E']['+'].keys()),len(args.a)))
-assert k == args.k, 'Value of k provided does not match supplied hmm file'
+    hmm = pickle.load(open(model,'rb'))
+    A,E,pi,states = hmm['A'],hmm['E'],hmm['pi'],hmm['states']
 
-kmers = [''.join(p) for p in product(alphabet,repeat=k)] # generate k-mers
-target = Reader(args.db)
-targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
-targetMap = defaultdict(list)
-#Pool processes onto number of CPU cores specified by the user
-with pool.Pool(args.n) as multiN:
-    jobs = multiN.starmap(hmmCalc,product(*[list(zip(targetHeaders,targetSeqs))]))
-    dataDict = dict(jobs)
-#Check if no hits were found
-# if not all(v == None for v in dataDict.values()):
+    # Explicitly determine k from the size of the log matrix and the size of the alphabet used to generate it
+    k = int(log(len(hmm['E']['+'].keys()),len(args.a)))
+    assert k == args.k, 'Value of k provided does not match supplied hmm file'
+
+    kmers = [''.join(p) for p in product(alphabet,repeat=k)] # generate k-mers
+    target = Reader(args.db)
+    targetSeqs,targetHeaders = target.get_seqs(),target.get_headers()
+    targetMap = defaultdict(list)
+    #Pool processes onto number of CPU cores specified by the user
+    with pool.Pool(args.n) as multiN:
+        jobs = multiN.starmap(hmmCalc,product(*[list(zip(targetHeaders,targetSeqs))]))
+        dataDict = dict(jobs)
+    #Check if no hits were found
+    # if not all(v == None for v in dataDict.values()):
 
 
-dataFrames = pd.concat([df for df in dataDict.values() if not None])
-dataFrames['Start']+=1 #1-start coordinates
-dataFrames['End']
-dataFrames['Length'] = dataFrames['End'] - dataFrames['Start'] +1
-dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName','Sequence']]
-if not args.fasta:
-    dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName']]
-dataFrames.sort_values(by='kmerLLR',ascending=False,inplace=True)
-dataFrames.reset_index(inplace=True,drop=True)
-dataFrames.to_csv(f'./{args.prefix}_{k}_viterbi.txt',sep='\t')
+    dataFrames = pd.concat([df for df in dataDict.values() if not None])
+    dataFrames['Start']+=1 #1-start coordinates
+    dataFrames['End']
+    dataFrames['Length'] = dataFrames['End'] - dataFrames['Start'] +1
+    dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName','Sequence']]
+    if not args.fasta:
+        dataFrames = dataFrames[['Start','End','Length','kmerLLR','seqName']]
+    dataFrames.sort_values(by='kmerLLR',ascending=False,inplace=True)
+    dataFrames.reset_index(inplace=True,drop=True)
+    dataFrames.to_csv(f'./{args.prefix}_{k}_viterbi.txt',sep='\t')
